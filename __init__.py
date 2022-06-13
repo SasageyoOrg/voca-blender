@@ -4,6 +4,7 @@ bl_info = {
     "category": "Object"
 }
 
+
 import bpy
 
 import os
@@ -12,11 +13,13 @@ import argparse
 
 import time
 
-from . utils.inference import inference
+#from . utils.inference import inference
 
 from os import listdir
 from contextlib import redirect_stdout
 from pathlib import Path
+
+from . panels import MenuPanel, SetupPanel
 
 class VOCAInference(bpy.types.Operator):
     """VOCA Inference"""      # Use this as a tooltip for menu items and buttons.
@@ -90,9 +93,11 @@ class VOCAInference(bpy.types.Operator):
         bpy.context.scene.frame_end = seq_len - 1
         bpy.context.scene.frame_set(0)
 
+        # Rename obj
+        main_obj.name = "VOCA_mesh"
+
     def add_audio(self, scene, audio_filepath): 
-        #scene = bpy.context.scene
-        scene.sequence_editor.sequences.new_sound("pippo", audio_filepath, 1, 0)
+        scene.sequence_editor.sequences.new_sound("audio", audio_filepath, 1, 0)
 
     def execute(self, context):        # execute() is called when running the operator.
 
@@ -107,6 +112,7 @@ class VOCAInference(bpy.types.Operator):
         
         print("Start inference")
 
+        '''
         start_time = time.perf_counter()
         inference(tf_model_fname, 
                     ds_fname, 
@@ -115,6 +121,7 @@ class VOCAInference(bpy.types.Operator):
                     condition_idx, 
                     out_path)
         end_time = time.perf_counter()
+        '''
 
         print("Mi piace il cazzo!\n")
 
@@ -125,6 +132,10 @@ class VOCAInference(bpy.types.Operator):
         # set the camera
         context.scene.camera.rotation_euler = (0,0,0)
         context.scene.camera.location = (0, -0.02, 1.2)
+
+        # set frame rate to 60 fps
+        context.scene.render.fps = 60
+
  
         return {'FINISHED'}            # Lets Blender know the operator finished successfully.
         
@@ -134,16 +145,22 @@ class VOCAInference(bpy.types.Operator):
 def menu_func(self, context):
     self.layout.operator(VOCAInference.bl_idname)
 
+
+CLASSES = [
+    VOCAInference,
+    MenuPanel,
+    SetupPanel
+]
+
 def register():
-    bpy.utils.register_class(VOCAInference)
+    for klass in CLASSES:
+        bpy.utils.register_class(klass)
     bpy.types.VIEW3D_MT_object.append(menu_func)  # Adds the new operator to an existing menu.
 
-def unregister():   
-    bpy.utils.unregister_class(VOCAInference)
+def unregister():  
+    for klass in CLASSES:
+        bpy.utils.unregister_class(klass) 
     bpy.types.VIEW3D_MT_object.remove(menu_func) 
 
-
-# This allows you to run the script directly from Blender's Text editor
-# to test the add-on without having to install it.
 if __name__ == "__main__":
     register()

@@ -23,7 +23,6 @@ import sys
 sys.path.insert(5,"/Users/sasageyo/CGM/.venv/voca/lib/python3.7/site-packages")
 # print(sys.path)
 
-import cv2
 import scipy
 import tempfile
 import numpy as np
