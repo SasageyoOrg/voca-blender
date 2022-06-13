@@ -3,6 +3,9 @@
 bold=$(tput bold)
 normal=$(tput sgr0)
 
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+SCRIPT_PATH="$SCRIPT_DIR/script-utils/ctypesloader.py"
+
 # go to home directory
 cd ~
 
@@ -48,6 +51,7 @@ echo "  ok"
 echo "\n${bold}> installing pip modules...${normal}"
 pip install wget numpy scipy chumpy opencv-python resampy python-speech-features tensorflow==1.15.2 scikit-learn image ipython matplotlib trimesh pyrender
 pip install --upgrade protobuf==3.20.0
+cp $SCRIPT_PATH .virtualenvs/vocablender/lib/python3.7/site-packages/OpenGL/platform/ctypesloader.py
 echo "  ok"
 
 # install mesh lib
