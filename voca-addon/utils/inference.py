@@ -15,31 +15,26 @@ More information about VOCA is available at http://voca.is.tue.mpg.de.
 For comments or questions, please email us at voca@tue.mpg.de
 '''
 
-
 import os
 import sys
-import bpy
 from pathlib import Path
 
+# get home directory to build the absolute path to virtual environment's python3.7 
 homeuserdir = str(Path.home())
 abs_path = homeuserdir + '/.virtualenvs/vocablender/lib/python3.7/site-packages'
-sys.path.insert(5,abs_path)
+# get the index of the blender's python lib in $PATH variable
+sys_path_index = next(i for i, string in enumerate(sys.path) if 'site-packages' in string)
+# insert the virtual environment's python into the sys.path if needed
+if not any('.virtualenvs/vocablender' in string for string in sys.path) :
+    sys.path.insert(sys_path_index, abs_path)
 # print(sys.path)
 
-import scipy
 import tempfile
 import numpy as np
 import tensorflow as tf
-from subprocess import call
 from scipy.io import wavfile
-
 from psbody.mesh import Mesh
-
-# from utils.audio_handler import  AudioHandler
-# from utils.rendering import render_mesh_helper
 from . audio_handler import AudioHandler
-# from . rendering import render_mesh_helper
-
 
 def process_audio(ds_path, audio, sample_rate):
     config = {}

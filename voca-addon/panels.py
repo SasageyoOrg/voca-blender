@@ -1,6 +1,5 @@
 import bpy
 from bpy.types import Panel
-
 from bpy.props import (StringProperty,
                        BoolProperty,
                     #    IntProperty,
@@ -12,13 +11,13 @@ from bpy.props import (StringProperty,
 
 PROPS = { 
     'MENU': [
-        ('TemplatePath', StringProperty(name = "", default = "addon-source/template/FLAME_sample.ply", description = "Define the root path of the Template", subtype = 'FILE_PATH')),
-        ('AudioPath', StringProperty(name = "", default = "addon-source/audio/test_sentence.wav", description = "Define the root path of the Audio", subtype = 'FILE_PATH')),
-        ('OutputPath', StringProperty(name = "", default = "addon-source/animation_output/", description = "Define the root path of the Output", subtype = 'DIR_PATH'))
+        ('TemplatePath', StringProperty(name = "", default = "template.ply", description = "Define the root path of the Template", subtype = 'FILE_PATH')),
+        ('AudioPath', StringProperty(name = "", default = "audio.wav", description = "Define the root path of the Audio", subtype = 'FILE_PATH')),
+        ('OutputPath', StringProperty(name = "", default = "meshes_output_dir/", description = "Define the root path of the Output", subtype = 'DIR_PATH'))
     ],
     'MESH' : [
-        ('AudioPathMesh', StringProperty(name = "", default = "addon-source/audio/test_sentence.wav", description = "Define the root path of the Audio", subtype = 'FILE_PATH')),
-        ('OutputPathMesh', StringProperty(name = "", default = "addon-source/animation_output/meshes/", description = "Define the root path of the Output", subtype = 'DIR_PATH'))
+        ('AudioPathMesh', StringProperty(name = "", default = "audio.wav", description = "Define the root path of the Audio", subtype = 'FILE_PATH')),
+        ('OutputPathMesh', StringProperty(name = "", default = "meshes_to_import_dir/", description = "Define the root path of the Output", subtype = 'DIR_PATH'))
     ]
 }
 
@@ -75,6 +74,10 @@ class handle_meshes_panel(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = 'VOCA'
+
+    @classmethod
+    def pool(cls, context):
+        return False
     
     def draw(self, context):
         #self.layout.label(text='Clear Object')

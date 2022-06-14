@@ -1,13 +1,8 @@
-
 import bpy
 from bpy.types import Operator
-
 from os import listdir
 from contextlib import redirect_stdout
 from pathlib import Path
-
-import time
-
 from . utils.inference import inference
 
 # MAIN OPERATOR: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -29,27 +24,21 @@ class Run_VOCA(Operator):
 
         # Standard VOCA's Path
         addondir = bpy.utils.user_resource('SCRIPTS', "addons")
-        # tf_model_fname = 'addon-source/model/gstep_52280.model'
-        tf_model_fname = addondir + '/addon-source/model/gstep_52280.model'
-        # ds_fname =  'addon-source/ds_graph/output_graph.pb'
-        ds_fname =  addondir + '/addon-source/ds_graph/output_graph.pb'
+        tf_model_fname = addondir + '/voca-addon/model/gstep_52280.model'
+        ds_fname =  addondir + '/voca-addon/ds_graph/output_graph.pb'
         condition_idx =  3
 
-        print("INFERENZA")
         # Inference
         print("Start inference")
 
-        # start_time = time.perf_counter()
         inference(tf_model_fname, 
                     ds_fname, 
                     audio_fname, 
                     template_fname, 
                     condition_idx, 
                     out_path)
-        # end_time = time.perf_counter()
-
-        print("End inference!\n")
-        # print("Time: " + (end_time - start_time))
+        
+        print("End inference\n")
 
         # Call Import Meshes
         bpy.ops.opr.meshimport('EXEC_DEFAULT')

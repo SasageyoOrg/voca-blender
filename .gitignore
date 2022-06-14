@@ -1,5 +1,5 @@
-addon-source/animation-output
-addon-source/ds_graph/output_graph.pb
+voca-addon/animation-output
+voca-addon/ds_graph/output_graph.pb
 .DS_Store
 
 # Byte-compiled / optimized / DLL files

@@ -4,16 +4,13 @@ bl_info = {
     "version": (1, 0),
     "blender": (2, 80, 0),
     "location": "View3D",
-    "description": "Add-on for voca model",
+    "description": "Add-on for voca framework",
     "warning": "",
     "doc_url": "",
     "category": "VOCA",
 }
 
 import bpy
-
-from os import listdir
-
 from . panels import run_model_panel, mesh_import_panel, handle_meshes_panel
 from . operators import Run_VOCA, Mesh_Import, Mesh_Hide, Mesh_Delete_All, Mesh_Delete_Other
 
