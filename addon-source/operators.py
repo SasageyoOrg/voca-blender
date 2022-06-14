@@ -1,5 +1,6 @@
 
 import bpy
+from bpy.types import Operator
 
 from os import listdir
 from contextlib import redirect_stdout
@@ -7,10 +8,11 @@ from pathlib import Path
 
 import time
 
-#from . utils.inference import inference
+from . utils.inference import inference
 
-# RunVOCAOperator Class~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-class RunVOCAOperator(bpy.types.Operator):
+# MAIN OPERATOR: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Run model VOCA ============================
+class Run_VOCA(Operator):
     """VOCA Inference"""                         # Use this as a tooltip for menu items and buttons.
     bl_idname = "opr.runvoca"                    # Unique identifier for buttons and menu items to reference.
     bl_label = "Run VOCA"                        # Display name in the interface.
@@ -35,13 +37,13 @@ class RunVOCAOperator(bpy.types.Operator):
         print("Start inference")
 
         start_time = time.perf_counter()
-        # inference(tf_model_fname, 
-        #             ds_fname, 
-        #             audio_fname, 
-        #             template_fname, 
-        #             condition_idx, 
-        #             out_path)
-        # end_time = time.perf_counter()
+        inference(tf_model_fname, 
+                    ds_fname, 
+                    audio_fname, 
+                    template_fname, 
+                    condition_idx, 
+                    out_path)
+        end_time = time.perf_counter()
 
         print("End inference!\n")
         print("Time: " + (end_time - start_time))
@@ -50,10 +52,10 @@ class RunVOCAOperator(bpy.types.Operator):
         bpy.ops.opr.meshimport('EXEC_DEFAULT')
  
         return {'FINISHED'}            # Lets Blender know the operator finished successfully.
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ===========================================
 
-# MeshImportOperator Class~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-class MeshImportOperator(bpy.types.Operator):
+# Import Meshes =============================
+class Mesh_Import(Operator):
     """VOCA Inference"""                    # Use this as a tooltip for menu items and buttons.
     bl_idname = "opr.meshimport"            # Unique identifier for buttons and menu items to reference.
     bl_label = "Mesh Import"                # Display name in the interface.
@@ -157,4 +159,55 @@ class MeshImportOperator(bpy.types.Operator):
         context.scene.render.fps = 60   
  
         return {'FINISHED'}                  
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ===========================================
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# HANDLE MESHES OPERATOR: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Hide All Meshes ===========================
+class Mesh_Hide(Operator):
+    bl_idname = 'object.hide_viewport_clear'
+    bl_label = 'Clear viewport hide'
+    bl_description = 'Globally cler hiding in viewport'
+    bl_options = {'REGISTER', 'UNDO'}
+ 
+    def execute(self, context):
+        for obj in context.blend_data.objects:
+            if obj.type == 'MESH' and (not "VOCA" in obj.name):
+                if obj.hide_viewport == False:
+                    obj.hide_viewport = True
+                else:
+                    obj.hide_viewport = False   
+        return {'FINISHED'}
+# ===========================================
+    
+# Delete All Meshes =========================   
+class Mesh_Delete_All(Operator):
+    bl_idname = 'object.delete_meshes'
+    bl_label = 'Delete meshes'
+    bl_description = 'Delete all meshes'
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    def execute(self, context):
+        for obj in bpy.context.scene.objects:
+            if obj.type == 'MESH':
+                obj.select_set(True)
+                bpy.ops.object.delete() 
+        return {'FINISHED'}
+# ===========================================
+    
+# Delete Other Meshes =======================   
+class Mesh_Delete_Other(Operator):
+    bl_idname = 'object.delete_other_meshes'
+    bl_label = 'Delete other meshes'
+    bl_description = 'Delete all other meshes'
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    def execute(self, context):
+        for obj in bpy.context.scene.objects:
+            print(obj.name)
+            if obj.type == 'MESH' and (not "VOCA" in obj.name):
+                obj.select_set(True)
+                bpy.ops.object.delete() 
+        return {'FINISHED'}
+# ===========================================
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

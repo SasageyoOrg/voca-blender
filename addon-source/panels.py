@@ -1,20 +1,30 @@
 import bpy
+from bpy.types import Panel
+
+from bpy.props import (StringProperty,
+                       BoolProperty,
+                    #    IntProperty,
+                    #    FloatProperty,
+                    #    FloatVectorProperty,
+                    #    EnumProperty,
+                    #    PointerProperty,
+                       )
 
 PROPS = { 
     'MENU': [
-        ('TemplatePath', bpy.props.StringProperty(name = "", default = "addon-source/model/gstep_52280.model", description = "Define the root path of the Template", subtype = 'DIR_PATH')),
-        ('AudioPath', bpy.props.StringProperty(name = "", default = "addon-source/audio/test_sentence.wav", description = "Define the root path of the Audio", subtype = 'DIR_PATH')),
-        ('OutputPath', bpy.props.StringProperty(name = "", default = "addon-source/animation_output", description = "Define the root path of the Output", subtype = 'DIR_PATH'))
+        ('TemplatePath', StringProperty(name = "", default = "addon-source/template/FLAME_sample.ply", description = "Define the root path of the Template", subtype = 'FILE_PATH')),
+        ('AudioPath', StringProperty(name = "", default = "addon-source/audio/test_sentence.wav", description = "Define the root path of the Audio", subtype = 'FILE_PATH')),
+        ('OutputPath', StringProperty(name = "", default = "addon-source/animation_output/", description = "Define the root path of the Output", subtype = 'DIR_PATH'))
     ],
     'MESH' : [
-        ('AudioPathMesh', bpy.props.StringProperty(name = "", default = "addon-source/audio/test_sentence.wav", description = "Define the root path of the Audio", subtype = 'DIR_PATH')),
-        ('OutputPathMesh', bpy.props.StringProperty(name = "", default = "addon-source/animation_output/meshes/", description = "Define the root path of the Output", subtype = 'DIR_PATH'))
+        ('AudioPathMesh', StringProperty(name = "", default = "addon-source/audio/test_sentence.wav", description = "Define the root path of the Audio", subtype = 'FILE_PATH')),
+        ('OutputPathMesh', StringProperty(name = "", default = "addon-source/animation_output/meshes/", description = "Define the root path of the Output", subtype = 'DIR_PATH'))
     ]
 }
 
-class MenuPanel(bpy.types.Panel):
-    
-    bl_idname = "VOCA_pannel_menu"
+# RUN VOCA ==================================
+class run_model_panel(Panel):
+    bl_idname = "VOCA_PT_run_model"
     bl_label = 'Run VOCA Model'
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -32,10 +42,11 @@ class MenuPanel(bpy.types.Panel):
 
         col = self.layout.column()
         col.operator('opr.runvoca', text='Run')
+# ===========================================
 
-class MeshPanel(bpy.types.Panel):
-    
-    bl_idname = "VOCA_pannel_mesh"
+# IMPORTING MESHES ==========================
+class mesh_import_panel(Panel):
+    bl_idname = "VOCA_PT_mesh_import"
     bl_label = 'Import Mesh'
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -55,10 +66,26 @@ class MeshPanel(bpy.types.Panel):
 
         col = self.layout.column()
         col.operator('opr.meshimport', text='Import').choice = True
+# ===========================================
 
-
-# class SetupPanel(bpy.types.Panel):
+# CLEAR & DELETE PANEL ======================
+class handle_meshes_panel(Panel):  
+    bl_idname = "VOCA_PT_handle_meshes"
+    bl_label = 'Clear Objects'
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'VOCA'
     
+    def draw(self, context):
+        #self.layout.label(text='Clear Object')
+        col = self.layout.column()
+        col.operator("object.hide_viewport_clear", text="Hide Object")
+        col.operator("object.delete_meshes", text="Delete ALL Object")
+        col.operator("object.delete_other_meshes", text="Delete no-VOCA Object")
+# ===========================================
+
+# TODO: setup installation
+# class SetupPanel(bpy.types.Panel):
 #     bl_idname = "VOCA_pannel_setup"
 #     bl_label = 'Setup'
 #     bl_space_type = 'VIEW_3D'

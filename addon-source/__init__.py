@@ -14,20 +14,19 @@ import bpy
 
 from os import listdir
 
-from . panels import MenuPanel, MeshPanel
-from . handle_meshes import OBJECT_hide_viewport_clear, ClearPanel, mesh_delete, mesh_delete_other
-from . main_operator import RunVOCAOperator, MeshImportOperator
+from . panels import run_model_panel, mesh_import_panel, handle_meshes_panel
+from . operators import Run_VOCA, Mesh_Import, Mesh_Hide, Mesh_Delete_All, Mesh_Delete_Other
 
 # GLOBAL Var ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CLASSES = [
-    RunVOCAOperator,
-    MeshImportOperator,
-    MenuPanel,
-    MeshPanel,
-    OBJECT_hide_viewport_clear,
-    ClearPanel,
-    mesh_delete,
-    mesh_delete_other
+    Run_VOCA,
+    Mesh_Import,
+    run_model_panel,
+    mesh_import_panel,
+    Mesh_Hide,
+    handle_meshes_panel,
+    Mesh_Delete_All,
+    Mesh_Delete_Other
 ]
 
 PROPS = panels.PROPS
