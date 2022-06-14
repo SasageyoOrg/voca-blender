@@ -1,6 +1,5 @@
-addon-source/animation_output/meshes
-bck
-
+addon-source/animation-output
+addon-source/ds_graph/output_graph.pb
 .DS_Store
 
 # Byte-compiled / optimized / DLL files

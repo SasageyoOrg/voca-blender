@@ -18,9 +18,12 @@ For comments or questions, please email us at voca@tue.mpg.de
 
 import os
 import sys
+import bpy
+from pathlib import Path
 
-#sys.path.append("/Users/sasageyo/CGM/.venv/voca/lib/python3.7/site-packages")
-sys.path.insert(5,"/Users/sasageyo/CGM/.venv/voca/lib/python3.7/site-packages")
+homeuserdir = str(Path.home())
+abs_path = homeuserdir + '/.virtualenvs/vocablender/lib/python3.7/site-packages'
+sys.path.insert(5,abs_path)
 # print(sys.path)
 
 import scipy
