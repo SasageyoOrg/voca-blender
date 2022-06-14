@@ -155,52 +155,36 @@ class Mesh_Import(Operator):
 # ===========================================
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# HANDLE MESHES OPERATOR: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Hide All Meshes ===========================
-class Mesh_Hide(Operator):
-    bl_idname = 'object.hide_viewport_clear'
-    bl_label = 'Clear viewport hide'
-    bl_description = 'Globally cler hiding in viewport'
-    bl_options = {'REGISTER', 'UNDO'}
- 
-    def execute(self, context):
-        for obj in context.blend_data.objects:
-            if obj.type == 'MESH' and (not "VOCA" in obj.name):
-                if obj.hide_viewport == False:
-                    obj.hide_viewport = True
-                else:
-                    obj.hide_viewport = False   
-        return {'FINISHED'}
-# ===========================================
-    
-# Delete All Meshes =========================   
-class Mesh_Delete_All(Operator):
+# HANDLE MESHES OPERATORS: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# DELETE ALL MESHES ========================================
+
+
+class MeshDelete(Operator):
     bl_idname = 'object.delete_meshes'
     bl_label = 'Delete meshes'
     bl_description = 'Delete all meshes'
     bl_options = {'REGISTER', 'UNDO'}
-    
+
     def execute(self, context):
         for obj in bpy.context.scene.objects:
             if obj.type == 'MESH':
                 obj.select_set(True)
-                bpy.ops.object.delete() 
+                bpy.ops.object.delete()
         return {'FINISHED'}
-# ===========================================
-    
-# Delete Other Meshes =======================   
-class Mesh_Delete_Other(Operator):
+
+# DELETE OTHER MESHES ========================================
+
+
+class MeshDeleteOther(Operator):
     bl_idname = 'object.delete_other_meshes'
     bl_label = 'Delete other meshes'
     bl_description = 'Delete all other meshes'
     bl_options = {'REGISTER', 'UNDO'}
-    
+
     def execute(self, context):
         for obj in bpy.context.scene.objects:
             print(obj.name)
             if obj.type == 'MESH' and (not "VOCA" in obj.name):
                 obj.select_set(True)
-                bpy.ops.object.delete() 
+                bpy.ops.object.delete()
         return {'FINISHED'}
-# ===========================================
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

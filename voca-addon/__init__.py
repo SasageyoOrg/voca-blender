@@ -1,3 +1,6 @@
+
+from . panels import run_model_panel, mesh_import_panel, ClearPanel
+from . operators import Run_VOCA, Mesh_Import, MeshDelete, MeshDeleteOther
 bl_info = {
     "name": "VOCA Add-On",
     "author": "Sasageyo",
@@ -11,8 +14,7 @@ bl_info = {
 }
 
 import bpy
-from . panels import run_model_panel, mesh_import_panel, handle_meshes_panel
-from . operators import Run_VOCA, Mesh_Import, Mesh_Hide, Mesh_Delete_All, Mesh_Delete_Other
+
 
 # GLOBAL Var ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CLASSES = [
@@ -20,10 +22,9 @@ CLASSES = [
     Mesh_Import,
     run_model_panel,
     mesh_import_panel,
-    Mesh_Hide,
-    handle_meshes_panel,
-    Mesh_Delete_All,
-    Mesh_Delete_Other
+    MeshDeleteOther,
+    MeshDelete,
+    ClearPanel
 ]
 
 PROPS = panels.PROPS
@@ -37,6 +38,10 @@ def register():
 
     for klass in CLASSES:
         bpy.utils.register_class(klass)
+    # bpy.types.Scene.hide = bpy.props.BoolProperty(
+    #     name="Hide meshes",
+    #     description="Some tooltip",
+    #     default=False)
 
 def unregister():  
     for PROP in PROPS.values():
@@ -45,6 +50,7 @@ def unregister():
 
     for klass in CLASSES:
         bpy.utils.unregister_class(klass)
+    # del bpy.types.Scene.my_prop
 
 if __name__ == "__main__":
     register()
