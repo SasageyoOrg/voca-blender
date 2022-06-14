@@ -1,15 +1,18 @@
+#------------------------------------------
+
+# BACKUP: versione FUNZIONANTE con un operatore unico 
+
+#------------------------------------------
+
+
 bl_info = {
-    "name": "ADD-ON VOCA",
+    "name": "Inference",
     "blender": (2, 80, 0),
-    "category": "Object",
-    "Author" : "Sasageyo"
+    "category": "Object"
 }
 
+
 from curses import panel
-from email.policy import default
-from functools import cached_property
-from secrets import choice
-import this
 from typing import ParamSpecArgs
 import bpy
 
@@ -26,61 +29,19 @@ from pathlib import Path
 #from . utils.inference import inference
 from . panels import MenuPanel, MeshPanel, SetupPanel
 
-# RunVOCAOperator Class~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-class RunVOCAOperator(bpy.types.Operator):
-    """VOCA Inference"""                         # Use this as a tooltip for menu items and buttons.
-    bl_idname = "opr.runvoca"                    # Unique identifier for buttons and menu items to reference.
-    bl_label = "Run VOCA"                        # Display name in the interface.
-    bl_options = {'REGISTER', 'UNDO'}            # Enable undo for the operator.
-
-    def execute(self, context):        # execute() is called when running the operator.
-         # get params by the panel
-        path_voca = (
-            context.scene.TemplatePath,
-            context.scene.AudioPath,
-            context.scene.OutputPath
-        )
-        (template_fname, audio_fname, out_path) =  path_voca
-
-        # Standard VOCA's Path
-        tf_model_fname = 'addon-source/model/gstep_52280.model'
-        ds_fname =  'addon-source/ds_graph/output_graph.pb'
-        condition_idx =  3
-
-        print("INFERENZA")
-        # Inference
-        print("Start inference")
-        start_time = time.perf_counter()
-        inference(tf_model_fname, 
-                    ds_fname, 
-                    audio_fname, 
-                    template_fname, 
-                    condition_idx, 
-                    out_path)
-        end_time = time.perf_counter()
-        print("Mi piace il cazzo!\n")
-        print("Time: " + (end_time - start_time))
-        # Call Import Meshes
-        bpy.ops.opr.meshimport('EXEC_DEFAULT')
- 
-        return {'FINISHED'}            # Lets Blender know the operator finished successfully.
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-# MeshImportOperator Class~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-class MeshImportOperator(bpy.types.Operator):
+# VOCAInference Class~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+class VOCAInference(bpy.types.Operator):
     """VOCA Inference"""      # Use this as a tooltip for menu items and buttons.
-    bl_idname = "opr.meshimport"        # Unique identifier for buttons and menu items to reference.
-    bl_label = "Mesh Import"             # Display name in the interface.
-    bl_options = {'REGISTER', 'UNDO'}   # Enable undo for the operator.
-
-    choice : bpy.props.BoolProperty(default = False)
+    bl_idname = "object.vocainference"        # Unique identifier for buttons and menu items to reference.
+    bl_label = "Inference"         # Display name in the interface.
+    bl_options = {'REGISTER', 'UNDO'}  # Enable undo for the operator.
 
     def create_shapekeys(self, directory): 
         directory = directory + "/meshes"
         filepaths = [Path(directory, f) for f in listdir(directory)]
         filepaths.sort()
 
-        #print(filepaths)
+        print(filepaths)
 
         def import_obj(filepaths):
             with redirect_stdout(None):
@@ -145,28 +106,37 @@ class MeshImportOperator(bpy.types.Operator):
         main_obj.name = "VOCA_mesh"
 
     def add_audio(self, scene, audio_filepath): 
-        scene.sequence_editor.sequences.new_sound("audio", audio_filepath, 1, 0)        
+        scene.sequence_editor.sequences.new_sound("audio", audio_filepath, 1, 0)
 
     def execute(self, context):        # execute() is called when running the operator.
          # get params by the panel
-        if self.choice:
-            # params of import meshes pannel
-            path_mesh = (
-                context.scene.AudioPathMesh,
-                context.scene.OutputPathMesh
-            )
-            (audio_fname, out_path) =  path_mesh  
-        else:
-            # params of run model pannel
-            path_voca = (
-                context.scene.TemplatePath,
-                context.scene.AudioPath,
-                context.scene.OutputPath
-            )
-            (_, audio_fname, out_path) =  path_voca
+        path_voca = (
+            context.scene.TemplatePath,
+            context.scene.AudioPath,
+            context.scene.OutputPath
+        )
+        (template_fname, audio_fname, out_path) =  path_voca
 
-        print("IMPORT")
-        # IMPORTING MESHES
+        # Standard VOCA's Path
+        tf_model_fname = 'addon-source/model/gstep_52280.model'
+        ds_fname =  'addon-source/ds_graph/output_graph.pb'
+        condition_idx =  3
+        
+        
+        print("Start inference")
+        '''
+        start_time = time.perf_counter()
+        inference(tf_model_fname, 
+                    ds_fname, 
+                    audio_fname, 
+                    template_fname, 
+                    condition_idx, 
+                    out_path)
+        end_time = time.perf_counter()
+        '''
+        print("Mi piace il cazzo!\n")
+
+        
         self.create_shapekeys(out_path)
         self.add_audio(context.scene, audio_fname)
 
@@ -175,17 +145,17 @@ class MeshImportOperator(bpy.types.Operator):
         context.scene.camera.location = (0, -0.02, 1.2)
 
         # set frame rate to 60 fps
-        context.scene.render.fps = 60   
+        context.scene.render.fps = 60
  
         return {'FINISHED'}            # Lets Blender know the operator finished successfully.
         
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self, width = 400)
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 
 # GLOBAL Var ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CLASSES = [
-    RunVOCAOperator,
-    MeshImportOperator,
+    VOCAInference,
     MenuPanel,
     MeshPanel,
     SetupPanel
@@ -195,13 +165,18 @@ PROPS = panels.PROPS
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # ADD-ON func ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+def menu_func(self, context):
+    self.layout.operator(VOCAInference.bl_idname)
+
 def register():
+
     for PROP in PROPS.values():
         for (prop_name, prop_value) in PROP:
             setattr(bpy.types.Scene, prop_name, prop_value)
 
     for klass in CLASSES:
         bpy.utils.register_class(klass)
+    bpy.types.VIEW3D_MT_object.append(menu_func)  # Adds the new operator to an existing menu.
 
 def unregister():  
     for PROP in PROPS.values():
@@ -209,7 +184,8 @@ def unregister():
             delattr(bpy.types.Scene, prop_name)
 
     for klass in CLASSES:
-        bpy.utils.unregister_class(klass)
+        bpy.utils.unregister_class(klass) 
+    bpy.types.VIEW3D_MT_object.remove(menu_func) 
 
 if __name__ == "__main__":
     register()
