@@ -3,12 +3,12 @@ import bpy
 PROPS = { 
     'MENU': [
         ('TemplatePath', bpy.props.StringProperty(name = "", default = "addon-source/model/gstep_52280.model", description = "Define the root path of the Template", subtype = 'DIR_PATH')),
-        ('AudioPath', bpy.props.StringProperty(name = "", default = "addon-source/audio/loris-dick.wav", description = "Define the root path of the Audio", subtype = 'DIR_PATH')),
+        ('AudioPath', bpy.props.StringProperty(name = "", default = "addon-source/audio/test_sentence.wav", description = "Define the root path of the Audio", subtype = 'DIR_PATH')),
         ('OutputPath', bpy.props.StringProperty(name = "", default = "addon-source/animation_output", description = "Define the root path of the Output", subtype = 'DIR_PATH'))
     ],
     'MESH' : [
-        ('AudioPathMesh', bpy.props.StringProperty(name = "", default = "addon-source/audio/loris-dick.wav", description = "Define the root path of the Audio", subtype = 'DIR_PATH')),
-        ('OutputPathMesh', bpy.props.StringProperty(name = "", default = "addon-source/animation_output", description = "Define the root path of the Output", subtype = 'DIR_PATH'))
+        ('AudioPathMesh', bpy.props.StringProperty(name = "", default = "addon-source/audio/test_sentence.wav", description = "Define the root path of the Audio", subtype = 'DIR_PATH')),
+        ('OutputPathMesh', bpy.props.StringProperty(name = "", default = "addon-source/animation_output/meshes/", description = "Define the root path of the Output", subtype = 'DIR_PATH'))
     ]
 }
 
@@ -57,14 +57,14 @@ class MeshPanel(bpy.types.Panel):
         col.operator('opr.meshimport', text='Import').choice = True
 
 
-class SetupPanel(bpy.types.Panel):
+# class SetupPanel(bpy.types.Panel):
     
-    bl_idname = "VOCA_pannel_setup"
-    bl_label = 'Setup'
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_category = 'VOCA'
+#     bl_idname = "VOCA_pannel_setup"
+#     bl_label = 'Setup'
+#     bl_space_type = 'VIEW_3D'
+#     bl_region_type = 'UI'
+#     bl_category = 'VOCA'
     
-    def draw(self, context):
-        self.layout.label(text='Mi piace il Cazzo  grosso e nero')
+#     def draw(self, context):
+#         self.layout.label(text='Setup')
         

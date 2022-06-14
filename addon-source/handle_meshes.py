@@ -1,21 +1,7 @@
 import bpy
 from bpy.types import Operator
-from bpy.utils import register_class, unregister_class
  
- 
-class OBJECT_hide_viewport(Operator):
-    bl_idname = 'object.hide_viewport'
-    bl_label = 'Hide viewport'
-    bl_description = 'Globally disable in viewport'
-    bl_options = {'REGISTER', 'UNDO'}
- 
-    def execute(self, context):
-        for obj in context.selected_objects:
-            obj.hide_viewport = True
-        return {'FINISHED'}
-    
-    
-    
+# HIDE ALL MESHES ========================================  
 class OBJECT_hide_viewport_clear(Operator):
     bl_idname = 'object.hide_viewport_clear'
     bl_label = 'Clear viewport hide'
@@ -31,9 +17,7 @@ class OBJECT_hide_viewport_clear(Operator):
                     obj.hide_viewport = False   
         return {'FINISHED'}
     
-    
 # DELETE ALL MESHES ========================================   
-    
 class mesh_delete(Operator):
     bl_idname = 'object.delete_meshes'
     bl_label = 'Delete meshes'
@@ -48,7 +32,6 @@ class mesh_delete(Operator):
         return {'FINISHED'}
     
 # DELETE OTHER MESHES ========================================   
-    
 class mesh_delete_other(Operator):
     bl_idname = 'object.delete_other_meshes'
     bl_label = 'Delete other meshes'
@@ -64,35 +47,16 @@ class mesh_delete_other(Operator):
         return {'FINISHED'}
     
 # CLEAR & DELETE PANEL
-class ClearPanel(bpy.types.Panel):
-    
-    bl_idname = "clear objects"
-    bl_label = 'clear objects'
+class ClearPanel(bpy.types.Panel):  
+    bl_idname = "clear_objects"
+    bl_label = 'Clear Objects'
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = 'VOCA'
     
     def draw(self, context):
-        self.layout.label(text='Mi piace il Cazzo  grosso e nero')
+        #self.layout.label(text='Clear Object')
         col = self.layout.column()
-        col.operator("object.hide_viewport_clear", text="Nascondi gli altri oggetti")
-        col.operator("object.delete_meshes", text="Elimina tutte le mesh")
-        col.operator("object.delete_other_meshes", text="Elimina le mesh non VOCA")
-        
-        
-        
-def register():
-    register_class(OBJECT_hide_viewport_clear)
-    register_class(ClearPanel)
-    register_class(mesh_delete)
-    register_class(mesh_delete_other)
- 
-def unregister():
-    unregister_class(OBJECT_hide_viewport_clear)
-    unregister_class(ClearPanel)
-    unregister_class(mesh_delete)
-    unregister_class(mesh_delete_other)
-    
- 
-if __name__ == '__main__':
-    register()
+        col.operator("object.hide_viewport_clear", text="Hide Object")
+        col.operator("object.delete_meshes", text="Delete ALL Object")
+        col.operator("object.delete_other_meshes", text="Delete no-VOCA Object")
