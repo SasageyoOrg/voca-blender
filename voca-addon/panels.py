@@ -13,11 +13,11 @@ PROPS = {
     'MENU': [
         ('TemplatePath', StringProperty(name = "", default = "template.ply", description = "Define the root path of the Template", subtype = 'FILE_PATH')),
         ('AudioPath', StringProperty(name = "", default = "audio.wav", description = "Define the root path of the Audio", subtype = 'FILE_PATH')),
-        ('OutputPath', StringProperty(name = "", default = "meshes_output_dir/", description = "Define the root path of the Output", subtype = 'DIR_PATH'))
+        ('OutputPath', StringProperty(name = "", default = "path_to_output_meshes/", description = "Define the root path of the Output", subtype = 'DIR_PATH'))
     ],
     'MESH' : [
         ('AudioPathMesh', StringProperty(name = "", default = "audio.wav", description = "Define the root path of the Audio", subtype = 'FILE_PATH')),
-        ('OutputPathMesh', StringProperty(name = "", default = "meshes_to_import_dir/", description = "Define the root path of the Output", subtype = 'DIR_PATH'))
+        ('OutputPathMesh', StringProperty(name = "", default = "path_to_meshes_import/", description = "Define the root path of the Output", subtype = 'DIR_PATH'))
     ]
 }
 
@@ -50,6 +50,7 @@ class mesh_import_panel(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = 'VOCA'
+    bl_options = {'DEFAULT_CLOSED'}
 
     choice_opr = 'Mesh'
     
@@ -74,11 +75,8 @@ class handle_meshes_panel(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = 'VOCA'
+    bl_options = {'DEFAULT_CLOSED'}
 
-    @classmethod
-    def pool(cls, context):
-        return False
-    
     def draw(self, context):
         #self.layout.label(text='Clear Object')
         col = self.layout.column()
