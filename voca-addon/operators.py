@@ -1,10 +1,12 @@
 import bpy
+import sys
+sys.tracebacklimit = -1
 from bpy.types import Operator
 from os import listdir
 from contextlib import redirect_stdout
 from pathlib import Path
 
-from . utils.inference import inference
+# from . utils.inference import inference
 
 # MAIN OPERATOR: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Run model VOCA ============================
@@ -33,20 +35,25 @@ class Run_VOCA(Operator):
 
         # Inference
         print("Start inference")
-
-        inference(tf_model_fname, 
-                    ds_fname, 
-                    audio_fname, 
-                    template_fname, 
-                    condition_idx, 
-                    uv_template_fname,
-                    texture_img_fname,
-                    out_path)
-        
+        try:
+            inference(tf_model_fname, 
+                        ds_fname, 
+                        audio_fname, 
+                        template_fname, 
+                        condition_idx, 
+                        uv_template_fname,
+                        texture_img_fname,
+                        out_path)
+        except Exception as e:
+            self.report({"ERROR"}, ("Errore: " + str(e)))
+            return {"CANCELLED"}
         print("End inference\n")
 
         # Call Import Meshes
-        bpy.ops.opr.meshimport('EXEC_DEFAULT')
+        try:
+            bpy.ops.opr.meshimport('EXEC_DEFAULT')
+        except Exception as e:
+            self.report({"ERROR"}, ("Errore: " + str(e)))
  
         return {'FINISHED'}            # Lets Blender know the operator finished successfully.
 # ===========================================
@@ -68,11 +75,14 @@ class Mesh_Import(Operator):
         def import_obj(filepaths):
             with redirect_stdout(None):
                 bpy.ops.import_scene.obj(filepath=filepaths, split_mode="OFF")
+                
+
         
         def objtodefault(obj):     
             # imposta la posizione e la rotazione a default (0,0,0)
             obj.location = [0, 0, 0]
             obj.rotation_euler = [0, 0, 0] # faccia verso asse z
+
 
         # import first obj
         import_obj(str(filepaths[0]))
@@ -146,9 +156,11 @@ class Mesh_Import(Operator):
 
         print("IMPORT")
         # IMPORTING MESHES
-        self.create_shapekeys(out_path)
-        self.add_audio(context.scene, audio_fname)
-
+        try:
+            self.create_shapekeys(out_path)
+            self.add_audio(context.scene, audio_fname)
+        except Exception as e:
+            self.report({"ERROR"}, ("Errore: " + str(e)))
         # set the camera
         context.scene.camera.rotation_euler = (0,0,0)
         context.scene.camera.location = (0, -0.02, 1.2)
