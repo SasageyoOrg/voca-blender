@@ -3,6 +3,7 @@ from bpy.types import Operator
 from os import listdir
 from contextlib import redirect_stdout
 from pathlib import Path
+
 from . utils.inference import inference
 
 # MAIN OPERATOR: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -18,9 +19,11 @@ class Run_VOCA(Operator):
         path_voca = (
             context.scene.TemplatePath,
             context.scene.AudioPath,
-            context.scene.OutputPath
+            context.scene.OutputPath,
+            context.scene.TextureObjPath,
+            context.scene.TextureIMGPath
         )
-        (template_fname, audio_fname, out_path) =  path_voca
+        (template_fname, audio_fname, out_path, uv_template_fname, texture_img_fname) =  path_voca
 
         # Standard VOCA's Path
         addondir = bpy.utils.user_resource('SCRIPTS', "addons")
@@ -36,6 +39,8 @@ class Run_VOCA(Operator):
                     audio_fname, 
                     template_fname, 
                     condition_idx, 
+                    uv_template_fname,
+                    texture_img_fname,
                     out_path)
         
         print("End inference\n")
@@ -126,7 +131,7 @@ class Mesh_Import(Operator):
             # params of import meshes pannel
             path_mesh = (
                 context.scene.AudioPathMesh,
-                context.scene.OutputPathMesh
+                context.scene.MeshPath
             )
             (audio_fname, out_path) =  path_mesh  
         else:
@@ -157,8 +162,6 @@ class Mesh_Import(Operator):
 
 # HANDLE MESHES OPERATORS: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # DELETE ALL MESHES ========================================
-
-
 class MeshDelete(Operator):
     bl_idname = 'object.delete_meshes'
     bl_label = 'Delete meshes'
@@ -173,8 +176,6 @@ class MeshDelete(Operator):
         return {'FINISHED'}
 
 # DELETE OTHER MESHES ========================================
-
-
 class MeshDeleteOther(Operator):
     bl_idname = 'object.delete_other_meshes'
     bl_label = 'Delete other meshes'
