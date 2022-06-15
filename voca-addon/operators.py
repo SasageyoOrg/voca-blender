@@ -19,9 +19,11 @@ class Run_VOCA(Operator):
         path_voca = (
             context.scene.TemplatePath,
             context.scene.AudioPath,
-            context.scene.OutputPath
+            context.scene.OutputPath,
+            context.scene.TextureObjPath,
+            context.scene.TextureIMGPath
         )
-        (template_fname, audio_fname, out_path) =  path_voca
+        (template_fname, audio_fname, out_path, uv_template_fname, texture_img_fname) =  path_voca
 
         # Standard VOCA's Path
         addondir = bpy.utils.user_resource('SCRIPTS', "addons")
@@ -37,6 +39,8 @@ class Run_VOCA(Operator):
                     audio_fname, 
                     template_fname, 
                     condition_idx, 
+                    uv_template_fname,
+                    texture_img_fname,
                     out_path)
         
         print("End inference\n")
@@ -127,7 +131,7 @@ class Mesh_Import(Operator):
             # params of import meshes pannel
             path_mesh = (
                 context.scene.AudioPathMesh,
-                context.scene.PathMesh
+                context.scene.MeshPath
             )
             (audio_fname, out_path) =  path_mesh  
         else:

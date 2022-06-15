@@ -7,11 +7,12 @@ from bpy.props import (StringProperty,
                     #    FloatVectorProperty,
                     #    EnumProperty,
                     #    PointerProperty,
-                       )
+                    )
 
+import re
 
 def hide_callback(self, context):
-    print(bpy.types.Scene)
+    #print(bpy.types.Scene)
     for obj in bpy.context.blend_data.objects:
         if obj.type == 'MESH' and (not "VOCA" in obj.name):
             obj.hide_viewport = context.scene.hide
@@ -22,9 +23,14 @@ PROPS = {
         ('AudioPath', StringProperty(name = "", default = "audio.wav", description = "Define the root path of the Audio", subtype = 'FILE_PATH')),
         ('OutputPath', StringProperty(name = "", default = "path_to_output_meshes/", description = "Define the root path of the Output", subtype = 'DIR_PATH'))
     ],
+    'TEXTURE':[
+        ('AddTexture', BoolProperty(name = 'Add Texture', default = False)),
+        ('TextureObjPath', StringProperty(name = "", default = "path_to_OBJ_texture/", description = "Define the root path of the OBJ texture", subtype = 'FILE_PATH')),
+        ('TextureIMGPath', StringProperty(name = "", default = "path_to_IMG_texture/", description = "Define the root path of the IMG texture", subtype = 'FILE_PATH'))
+    ],
     'MESH' : [
         ('AudioPathMesh', StringProperty(name = "", default = "audio.wav", description = "Define the root path of the Audio", subtype = 'FILE_PATH')),
-        ('PathMesh', StringProperty(name = "", default = "path_to_meshes_import/", description = "Define the root path of the Output", subtype = 'DIR_PATH'))
+        ('MeshPath', StringProperty(name = "", default = "path_to_meshes_import/", description = "Define the root path of the Output", subtype = 'DIR_PATH'))
     ],
     'HIDE': [('hide', BoolProperty(name="Hide meshes", description="Check-box to hide no-VOCA meshes", default=False, update=hide_callback))]
 }
@@ -43,8 +49,20 @@ class run_model_panel(Panel):
         for (prop_name, _) in PROPS['MENU']:
             box = layout.box()
             row = box.row()
-            row.label(text = prop_name + ': ')
+            # add space on var name
+            name_string = re.sub(r'(?<=[a-z])(?=[A-Z])', ' ', prop_name)
+            row.label(text = name_string + ': ')
             row = box.row()
+            row.prop(context.scene, prop_name)
+        
+        # Texture
+        box = layout.box()
+        for (prop_name, _) in PROPS['TEXTURE']:
+            row = box.row()
+            # Disable row if not checked
+            if prop_name != 'AddTexture':
+                row = row.row()
+                row.enabled = context.scene.AddTexture
             row.prop(context.scene, prop_name)
 
         col = self.layout.column()
@@ -68,7 +86,9 @@ class mesh_import_panel(Panel):
         for (prop_name, _) in PROPS['MESH']:
             box = layout.box()
             row = box.row()
-            row.label(text = prop_name + ': ')
+            # add space on var name
+            name_string = re.sub(r'(?<=[a-z])(?=[A-Z])', ' ', prop_name)
+            row.label(text = name_string + ': ')
             row = box.row()
             row.prop(context.scene, prop_name)
 
