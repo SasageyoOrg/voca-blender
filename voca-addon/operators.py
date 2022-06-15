@@ -6,7 +6,7 @@ from os import listdir
 from contextlib import redirect_stdout
 from pathlib import Path
 
-#from . utils.inference import inference
+from . utils.inference import inference
 
 # MAIN OPERATOR: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Run model VOCA ============================
@@ -23,32 +23,32 @@ class Run_VOCA(Operator):
             context.scene.AudioPath,
             context.scene.OutputPath,
             context.scene.TextureObjPath,
-            context.scene.TextureIMGPath
+            context.scene.TextureIMGPath,
+            context.scene.Condition
         )
-        (template_fname, audio_fname, out_path, uv_template_fname, texture_img_fname) =  path_voca
+        (template_fname, audio_fname, out_path, uv_template_fname, texture_img_fname, condition_idx) =  path_voca
 
         # Standard VOCA's Path
         addondir = bpy.utils.user_resource('SCRIPTS', 'addons')
         tf_model_fname = addondir + '/voca-addon/model/gstep_52280.model'
         ds_fname =  addondir + '/voca-addon/ds_graph/output_graph.pb'
-        condition_idx =  3
 
         # Inference
-        print("Start inference")
+        print("Start inference")        
 
-        # inference(tf_model_fname, 
-        #             ds_fname, 
-        #             audio_fname, 
-        #             template_fname, 
-        #             condition_idx, 
-        #             uv_template_fname,
-        #             texture_img_fname,
-        #             out_path)
+        inference(tf_model_fname, 
+                    ds_fname, 
+                    audio_fname, 
+                    template_fname, 
+                    condition_idx, 
+                    uv_template_fname,
+                    texture_img_fname,
+                    out_path)
         
         print("End inference\n")
 
         # Call Import Meshes
-        bpy.ops.opr.meshimport('EXEC_DEFAULT', choice = 1)
+        bpy.ops.opr.meshimport('EXEC_DEFAULT', choice = 2)
  
         return {'FINISHED'}            # Lets Blender know the operator finished successfully.
 # ===========================================
@@ -158,17 +158,17 @@ class Mesh_Import(Operator):
 
         print(audio_fname, out_path)
 
-        # print("IMPORT")
-        # # IMPORTING MESHES
-        # self.create_shapekeys(out_path)
-        # self.add_audio(context.scene, audio_fname)
+        print("IMPORT\n")
+        # IMPORTING MESHES
+        self.create_shapekeys(out_path)
+        self.add_audio(context.scene, audio_fname)
 
-        # # set the camera
-        # context.scene.camera.rotation_euler = (0,0,0)
-        # context.scene.camera.location = (0, -0.02, 1.2)
+        # set the camera
+        context.scene.camera.rotation_euler = (0,0,0)
+        context.scene.camera.location = (0, -0.02, 1.2)
 
-        # # set frame rate to 60 fps
-        # context.scene.render.fps = 60   
+        # set frame rate to 60 fps
+        context.scene.render.fps = 60   
  
         return {'FINISHED'}                  
 # ===========================================

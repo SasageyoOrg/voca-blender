@@ -19,7 +19,8 @@ PROPS = {
     'MENU': [
         ('TemplatePath', StringProperty(name = "", default = "template.ply", description = "Define the root path of the Template", subtype = 'FILE_PATH')),
         ('AudioPath', StringProperty(name = "", default = "audio.wav", description = "Define the root path of the Audio", subtype = 'FILE_PATH')),
-        ('OutputPath', StringProperty(name = "", default = "path_to_output_meshes/", description = "Define the root path of the Output", subtype = 'DIR_PATH'))
+        ('OutputPath', StringProperty(name = "", default = "path_to_output_meshes/", description = "Define the root path of the Output", subtype = 'DIR_PATH')),
+        ('Condition', IntProperty(name = "", default = 3, description = "facial expression", min = 0, max = 8))
     ],
     'TEXTURE':[
         ('AddTexture', BoolProperty(name = 'Add Texture', default = False)),
@@ -32,7 +33,7 @@ PROPS = {
     ],
     'EDIT':[
         ('SourceMeshPath_edit', StringProperty(name = "", default = "path_to_source_meshes/", description = "Define the root path of the Source", subtype = 'DIR_PATH')),
-        ('OutputPath_edit', StringProperty(name = "", default = "path_to_output_meshes/", description = "Define the root path of the Output", subtype = 'DIR_PATH')),
+        ('OutputPath_edit', StringProperty(name = "", default = "path_to_output_edited/", description = "Define the root path of the Output", subtype = 'DIR_PATH')),
         ('TempletePath_edit', StringProperty(name = "", default = "template.ply", description = "Define the root path of the Template", subtype = 'FILE_PATH')),
         ('AudioPath_edit', StringProperty(name = "", default = "audio.wav", description = "Define the root path of the Audio", subtype = 'FILE_PATH')),
         ('DropdownChoice', EnumProperty(
