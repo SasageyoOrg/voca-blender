@@ -7,6 +7,10 @@ from contextlib import redirect_stdout
 from pathlib import Path
 
 from . utils.inference import inference
+# from . utils.edit_sequences import edit_sequences
+from . utils.edit_sequences import add_eye_blink
+from . utils.edit_sequences import alter_sequence_shape
+from . utils.edit_sequences import alter_sequence_head_pose
 
 # MAIN OPERATOR: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Run model VOCA ============================
@@ -185,11 +189,12 @@ class Mesh_Edit(Operator):
         path_edit = (
             context.scene.SourceMeshPath_edit,
             context.scene.OutputPath_edit,
-            context.scene.TempletePath_edit,
+            context.scene.FlameModelPath_edit,
             context.scene.AudioPath_edit,
             context.scene.DropdownChoice
         )
         (source_path, out_path, flame_model_path, _, mode) =  path_edit
+
         mode_edit = (
             context.scene.n_blink,
             context.scene.duration_blink,
@@ -198,24 +203,31 @@ class Mesh_Edit(Operator):
             context.scene.index_pose,
             context.scene.maxVariation_pose
         )
+
+        uv_template_fname = ''
+        texture_img_fname = ''
+
         if mode == 'Blink':
             (param_a, param_b, _, _, _, _) =  mode_edit
+            add_eye_blink(source_path, out_path, flame_model_path, param_a, param_b, uv_template_fname=uv_template_fname, texture_img_fname=texture_img_fname)
         elif mode == 'Shape':
             (_, _, param_a, param_b, _, _) =  mode_edit
+            alter_sequence_shape(source_path, out_path, flame_model_path, pc_idx=param_a, pc_range=(0,param_b), uv_template_fname=uv_template_fname, texture_img_fname=texture_img_fname)
         elif mode == 'Pose':
             (_, _, _, _, param_a, param_b) =  mode_edit
+            alter_sequence_head_pose(source_path, out_path, flame_model_path, pose_idx=param_a, rot_angle=param_b, uv_template_fname=uv_template_fname, texture_img_fname=texture_img_fname)
 
-        # Inference
-        print("Start edit")
-
-        # edit(source_path, 
-        #     out_path, 
-        #     flame_model_path, 
-        #     mode,
-        #     param_a,
-        #     param_b) 
-        
-        print("End edit\n")
+        # print("Start edit")
+        # edit_sequences( mode,
+        #                 param_a,
+        #                 param_b,
+        #                 source_path, 
+        #                 out_path, 
+        #                 flame_model_path, 
+        #                 uv_template_fname=uv_template_fname, 
+        #                 texture_img_fname=texture_img_fname
+        #                 ) 
+        # print("End edit\n")       
 
         # Call Import Meshes
         bpy.ops.opr.meshimport('EXEC_DEFAULT', choice = 3)

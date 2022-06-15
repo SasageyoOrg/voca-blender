@@ -51,7 +51,7 @@ def process_audio(ds_path, audio, sample_rate):
     return audio_handler.process(tmp_audio)['subj']['seq']['audio']
 
 
-def output_sequence_meshes(sequence_vertices, template, uv_template_fname, texture_img_fname, out_path):
+def output_sequence_meshes(sequence_vertices, template, out_path, uv_template_fname='', texture_img_fname=''):
     mesh_out_path = os.path.join(out_path, 'meshes')
     if not os.path.exists(mesh_out_path):
         os.makedirs(mesh_out_path)
@@ -106,6 +106,6 @@ def inference(tf_model_fname, ds_fname, audio_fname, template_fname, condition_i
         # Restore trained model
         saver.restore(session, tf_model_fname)
         predicted_vertices = np.squeeze(session.run(output_decoder, feed_dict))
-        output_sequence_meshes(predicted_vertices, template, uv_template_fname, texture_img_fname, out_path)
+        output_sequence_meshes(predicted_vertices, template, out_path, uv_template_fname, texture_img_fname)
     #tf.reset_default_graph()
     tf.compat.v1.reset_default_graph()

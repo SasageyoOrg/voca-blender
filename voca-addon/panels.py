@@ -1,4 +1,5 @@
 import bpy
+from math import pi
 from bpy.types import Panel
 from bpy.props import ( StringProperty,
                         BoolProperty,
@@ -34,7 +35,7 @@ PROPS = {
     'EDIT':[
         ('SourceMeshPath_edit', StringProperty(name = "", default = "path_to_source_meshes/", description = "Define the root path of the Source", subtype = 'DIR_PATH')),
         ('OutputPath_edit', StringProperty(name = "", default = "path_to_output_edited/", description = "Define the root path of the Output", subtype = 'DIR_PATH')),
-        ('TempletePath_edit', StringProperty(name = "", default = "template.ply", description = "Define the root path of the Template", subtype = 'FILE_PATH')),
+        ('FlameModelPath_edit', StringProperty(name = "", default = "generic_model.pkl", description = "Define the path of the FLAME model", subtype = 'FILE_PATH')),
         ('AudioPath_edit', StringProperty(name = "", default = "audio.wav", description = "Define the root path of the Audio", subtype = 'FILE_PATH')),
         ('DropdownChoice', EnumProperty(
             items=(
@@ -47,16 +48,16 @@ PROPS = {
             description = "Dropdown to choice edit mode"))
     ],
     'BLINK':[
-        ('n_blink', IntProperty(name = "Number", default = 2, description = "Define the root path of the Output")),
-        ('duration_blink', IntProperty(name = "Duration", default = 15, description = "Define the root path of the Output"))
+        ('n_blink', IntProperty(name = "Number", default = 2, description = "Define the root path of the Output", min = 0, max = 100)),
+        ('duration_blink', IntProperty(name = "Duration", default = 15, description = "Define the root path of the Output", min = 5, max = 30))
     ],
     'SHAPE':[
-        ('index_shape', IntProperty(name = "Index", default = 0, description = "")),
-        ('maxVariation_shape', IntProperty(name = "Max Variation", default = 3, description = ""))
+        ('index_shape', IntProperty(name = "Index", default = 0, description = "", min = 0, max = 299)),
+        ('maxVariation_shape', IntProperty(name = "Max Variation", default = 3, description = "", min = 0, max = 3))
     ],
     'POSE':[
-        ('index_pose', IntProperty(name = "Index", default = 0, description = "")),
-        ('maxVariation_pose', FloatProperty(name = "Max Variation", default = 0.52, description = ""))
+        ('index_pose', IntProperty(name = "Index", default = 3, description = "", min = 3, max = 5)),
+        ('maxVariation_pose', FloatProperty(name = "Max Variation", default = 0.52, description = "", min = 0.0, max = (2*pi - 0.01)))
     ],
     'HIDE': [('hide', BoolProperty(name="Hide meshes", description="Check-box to hide no-VOCA meshes", default=False, update=hide_callback))]
 }
