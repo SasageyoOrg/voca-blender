@@ -231,8 +231,11 @@ class Mesh_Edit(Operator):
         
         print("End edit\n")
 
-        # Call Import Meshes
-        bpy.ops.opr.meshimport('EXEC_DEFAULT', choice = 3)
+        try:
+            # Call Import Meshes
+            bpy.ops.opr.meshimport('EXEC_DEFAULT', choice = 3)
+        except Exception as e:
+            self.report({"ERROR"}, ("Errore: " + str(e)))
  
         return {'FINISHED'}            # Lets Blender know the operator finished successfully.
 # ===========================================
