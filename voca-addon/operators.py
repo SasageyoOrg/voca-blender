@@ -1,10 +1,12 @@
 import bpy
 from bpy.types import Operator
+from bpy.props import IntProperty
+
 from os import listdir
 from contextlib import redirect_stdout
 from pathlib import Path
 
-from . utils.inference import inference
+#from . utils.inference import inference
 
 # MAIN OPERATOR: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Run model VOCA ============================
@@ -15,7 +17,7 @@ class Run_VOCA(Operator):
     bl_options = {'REGISTER', 'UNDO'}            # Enable undo for the operator.
 
     def execute(self, context):                  # execute() is called when running the operator.
-         # get params by the panel
+        # get params by the panel
         path_voca = (
             context.scene.TemplatePath,
             context.scene.AudioPath,
@@ -26,7 +28,7 @@ class Run_VOCA(Operator):
         (template_fname, audio_fname, out_path, uv_template_fname, texture_img_fname) =  path_voca
 
         # Standard VOCA's Path
-        addondir = bpy.utils.user_resource('SCRIPTS', "addons")
+        addondir = bpy.utils.user_resource('SCRIPTS', 'addons')
         tf_model_fname = addondir + '/voca-addon/model/gstep_52280.model'
         ds_fname =  addondir + '/voca-addon/ds_graph/output_graph.pb'
         condition_idx =  3
@@ -34,19 +36,19 @@ class Run_VOCA(Operator):
         # Inference
         print("Start inference")
 
-        inference(tf_model_fname, 
-                    ds_fname, 
-                    audio_fname, 
-                    template_fname, 
-                    condition_idx, 
-                    uv_template_fname,
-                    texture_img_fname,
-                    out_path)
+        # inference(tf_model_fname, 
+        #             ds_fname, 
+        #             audio_fname, 
+        #             template_fname, 
+        #             condition_idx, 
+        #             uv_template_fname,
+        #             texture_img_fname,
+        #             out_path)
         
         print("End inference\n")
 
         # Call Import Meshes
-        bpy.ops.opr.meshimport('EXEC_DEFAULT')
+        bpy.ops.opr.meshimport('EXEC_DEFAULT', choice = 1)
  
         return {'FINISHED'}            # Lets Blender know the operator finished successfully.
 # ===========================================
@@ -58,7 +60,7 @@ class Mesh_Import(Operator):
     bl_label = "Mesh Import"                # Display name in the interface.
     bl_options = {'REGISTER', 'UNDO'}       # Enable undo for the operator.
 
-    choice : bpy.props.BoolProperty(default = False)
+    choice : IntProperty(default = 1)
 
     def create_shapekeys(self, directory): 
         #directory = directory + "/meshes"
@@ -127,42 +129,104 @@ class Mesh_Import(Operator):
 
     def execute(self, context):        
          # get params by the panel
-        if self.choice:
+        if self.choice == 1:
             # params of import meshes pannel
             path_mesh = (
                 context.scene.AudioPathMesh,
                 context.scene.MeshPath
             )
             (audio_fname, out_path) =  path_mesh  
-        else:
+        elif self.choice == 2:
             # params of run model pannel
             path_voca = (
-                context.scene.TemplatePath,
+                # context.scene.TemplatePath,
                 context.scene.AudioPath,
                 context.scene.OutputPath
             )
-            (_, audio_fname, out_path) =  path_voca
+            # (_, audio_fname, out_path) =  path_voca
+            (audio_fname, out_path) =  path_voca
+            out_path = out_path + 'meshes/'
+        elif self.choice == 3:
+            # params of run model pannel
+            path_edit = (
+                # context.scene.TemplatePath,
+                context.scene.AudioPath_edit,
+                context.scene.OutputPath_edit
+            )
+            (audio_fname, out_path) =  path_edit
             out_path = out_path + 'meshes/'
 
-        print("IMPORT")
-        # IMPORTING MESHES
-        self.create_shapekeys(out_path)
-        self.add_audio(context.scene, audio_fname)
+        print(audio_fname, out_path)
 
-        # set the camera
-        context.scene.camera.rotation_euler = (0,0,0)
-        context.scene.camera.location = (0, -0.02, 1.2)
+        # print("IMPORT")
+        # # IMPORTING MESHES
+        # self.create_shapekeys(out_path)
+        # self.add_audio(context.scene, audio_fname)
 
-        # set frame rate to 60 fps
-        context.scene.render.fps = 60   
+        # # set the camera
+        # context.scene.camera.rotation_euler = (0,0,0)
+        # context.scene.camera.location = (0, -0.02, 1.2)
+
+        # # set frame rate to 60 fps
+        # context.scene.render.fps = 60   
  
         return {'FINISHED'}                  
+# ===========================================
+
+# Edit Meshes VOCA ============================
+class Mesh_Edit(Operator):
+    """VOCA Inference"""                         # Use this as a tooltip for menu items and buttons.
+    bl_idname = "opr.meshedit"                   # Unique identifier for buttons and menu items to reference.
+    bl_label = "Mesh Edit"                       # Display name in the interface.
+    bl_options = {'REGISTER', 'UNDO'}            # Enable undo for the operator.
+
+    def execute(self, context):                  # execute() is called when running the operator.
+        # get params by the panel
+        path_edit = (
+            context.scene.SourceMeshPath_edit,
+            context.scene.OutputPath_edit,
+            context.scene.TempletePath_edit,
+            context.scene.AudioPath_edit,
+            context.scene.DropdownChoice
+        )
+        (source_path, out_path, flame_model_path, _, mode) =  path_edit
+        mode_edit = (
+            context.scene.n_blink,
+            context.scene.duration_blink,
+            context.scene.index_shape,
+            context.scene.maxVariation_shape,
+            context.scene.index_pose,
+            context.scene.maxVariation_pose
+        )
+        if mode == 'Blink':
+            (param_a, param_b, _, _, _, _) =  mode_edit
+        elif mode == 'Shape':
+            (_, _, param_a, param_b, _, _) =  mode_edit
+        elif mode == 'Pose':
+            (_, _, _, _, param_a, param_b) =  mode_edit
+
+        # Inference
+        print("Start edit")
+
+        # edit(source_path, 
+        #     out_path, 
+        #     flame_model_path, 
+        #     mode,
+        #     param_a,
+        #     param_b) 
+        
+        print("End edit\n")
+
+        # Call Import Meshes
+        bpy.ops.opr.meshimport('EXEC_DEFAULT', choice = 3)
+ 
+        return {'FINISHED'}            # Lets Blender know the operator finished successfully.
 # ===========================================
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # HANDLE MESHES OPERATORS: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # DELETE ALL MESHES ========================================
-class MeshDelete(Operator):
+class Mesh_Delete(Operator):
     bl_idname = 'object.delete_meshes'
     bl_label = 'Delete meshes'
     bl_description = 'Delete all meshes'
@@ -176,7 +240,7 @@ class MeshDelete(Operator):
         return {'FINISHED'}
 
 # DELETE OTHER MESHES ========================================
-class MeshDeleteOther(Operator):
+class Mesh_Delete_Other(Operator):
     bl_idname = 'object.delete_other_meshes'
     bl_label = 'Delete other meshes'
     bl_description = 'Delete all other meshes'

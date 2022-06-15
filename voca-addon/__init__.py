@@ -1,6 +1,6 @@
 
-from . panels import run_model_panel, mesh_import_panel, ClearPanel
-from . operators import Run_VOCA, Mesh_Import, MeshDelete, MeshDeleteOther
+from . panels import run_model_panel, mesh_import_panel, clear_pannel, edit_mesh_panel
+from . operators import Run_VOCA, Mesh_Import, Mesh_Edit, Mesh_Delete, Mesh_Delete_Other
 bl_info = {
     "name": "VOCA Add-On",
     "author": "Sasageyo",
@@ -15,16 +15,17 @@ bl_info = {
 
 import bpy
 
-
 # GLOBAL Var ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CLASSES = [
     Run_VOCA,
     Mesh_Import,
+    Mesh_Edit,
     run_model_panel,
     mesh_import_panel,
-    MeshDeleteOther,
-    MeshDelete,
-    ClearPanel
+    edit_mesh_panel,
+    Mesh_Delete,
+    Mesh_Delete_Other,
+    clear_pannel
 ]
 
 PROPS = panels.PROPS
