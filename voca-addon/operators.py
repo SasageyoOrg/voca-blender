@@ -8,7 +8,7 @@ from os import listdir
 from contextlib import redirect_stdout
 from pathlib import Path
 
-#from . utils.inference import inference
+from . utils.inference import inference
 
 # MAIN OPERATOR: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Run model VOCA ============================
@@ -25,15 +25,15 @@ class Run_VOCA(Operator):
             context.scene.AudioPath,
             context.scene.OutputPath,
             context.scene.TextureObjPath,
-            context.scene.TextureIMGPath
+            context.scene.TextureIMGPath,
+            context.scene.Condition
         )
-        (template_fname, audio_fname, out_path, uv_template_fname, texture_img_fname) =  path_voca
+        (template_fname, audio_fname, out_path, uv_template_fname, texture_img_fname, condition_idx) =  path_voca
 
         # Standard VOCA's Path
         addondir = bpy.utils.user_resource('SCRIPTS', 'addons')
         tf_model_fname = addondir + '/voca-addon/model/gstep_52280.model'
         ds_fname =  addondir + '/voca-addon/ds_graph/output_graph.pb'
-        condition_idx =  3
 
         # Inference
         print("Start inference")
@@ -177,12 +177,12 @@ class Mesh_Import(Operator):
         context.scene.camera.rotation_euler = (0,0,0)
         context.scene.camera.location = (0, -0.02, 1.2)
 
-        # # set the camera
-        # context.scene.camera.rotation_euler = (0,0,0)
-        # context.scene.camera.location = (0, -0.02, 1.2)
+        # set the camera
+        context.scene.camera.rotation_euler = (0,0,0)
+        context.scene.camera.location = (0, -0.02, 1.2)
 
-        # # set frame rate to 60 fps
-        # context.scene.render.fps = 60   
+        # set frame rate to 60 fps
+        context.scene.render.fps = 60   
  
         return {'FINISHED'}                  
 # ===========================================
