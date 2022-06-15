@@ -3,6 +3,7 @@ from bpy.types import Operator
 from os import listdir
 from contextlib import redirect_stdout
 from pathlib import Path
+
 from . utils.inference import inference
 
 # MAIN OPERATOR: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -126,7 +127,7 @@ class Mesh_Import(Operator):
             # params of import meshes pannel
             path_mesh = (
                 context.scene.AudioPathMesh,
-                context.scene.OutputPathMesh
+                context.scene.PathMesh
             )
             (audio_fname, out_path) =  path_mesh  
         else:
@@ -157,8 +158,6 @@ class Mesh_Import(Operator):
 
 # HANDLE MESHES OPERATORS: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # DELETE ALL MESHES ========================================
-
-
 class MeshDelete(Operator):
     bl_idname = 'object.delete_meshes'
     bl_label = 'Delete meshes'
@@ -173,8 +172,6 @@ class MeshDelete(Operator):
         return {'FINISHED'}
 
 # DELETE OTHER MESHES ========================================
-
-
 class MeshDeleteOther(Operator):
     bl_idname = 'object.delete_other_meshes'
     bl_label = 'Delete other meshes'
