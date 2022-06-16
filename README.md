@@ -1,6 +1,6 @@
 <p align="center">
   <a href="" rel="noopener">
-  <img style=vertical-align:middle; height=100 src="addon-source\img\voca.png " alt="Voca logo"></a>
+  <img style=vertical-align:middle; height=100 src="imgs\voca.png " alt="Voca logo"></a>
   <img style=vertical-align:middle; height=150px src="https://download.blender.org/branding/community/blender_community_badge_white.png" alt="Blender logo"></a>
 </p>
 
@@ -15,7 +15,7 @@
 
 # 📋About <a name = "about"></a>
 <p align="center" >
-  <img height=200px src="addon-source\img\speech_driven_animation.gif" alt="Voca gif"></a>
+  <img height=200px src="imgs\speech_driven_animation.gif" alt="Voca gif"></a>
 </p>
 VOCA is a simple and generic speech-driven facial animation framework that works across a range of identities. This add-on integrates VOCA withing Blender and allows the user to:
  * Run VOCA and synthesize a character animation given an speech signal. VOCA outputs a set meshes with .obj extension which must to be imported.
@@ -41,7 +41,7 @@ The original VOCA framework repository can be found here [here](https://github.c
 4. The add-on options are accessible in the 3D View side panel.
 
 <p align="center">
-  <img height=350px src="addon-source\img\side_panel.png" alt="Project logo"></a>
+  <img height=350px src="imgs\side_panel.png" alt="Project logo"></a>
 </p>
 
 ## To generate a new sequence of meshes:
@@ -61,64 +61,45 @@ The original VOCA framework repository can be found here [here](https://github.c
 
 # 🗂 Project Topology <a name="project-topology"></a>
 
+
 ```
 voca-blender
-│   .gitattributes
-│   .gitignore
-│   install-dependencies.command
-│   install-dependencies.sh
-│   LICENSE
-│   README.md
-│
-├───addon-source
-│   │   Logo_Blender.svg.png
-│   │   speech_driven_animation.gif
-│   │
-│   ├───utils
-│   │   └───__pycache__
-│   │           inference.cpython-37.pyc
-│   │           __init__.cpython-37.pyc
-│   │
-│   └───__pycache__
-│           handle_meshes.cpython-37.pyc
-│           operators.cpython-37.pyc
-│           panels.cpython-37.pyc
-│           __init__.cpython-37.pyc
-│
-├───script-utils
-│       ctypesloader.py
-│
-└───voca-addon
-    │   operators.py
-    │   panels.py
-    │   __init__.py
-    │
-    ├───audio
-    │       sentence20.wav
-    │       test_sentence.wav
-    │
-    ├───model
-    │       gstep_52280.model.data-00000-of-00001
-    │       gstep_52280.model.index
-    │       gstep_52280.model.meta
-    │
-    ├───template
-    │       FLAME_sample.ply
-    │
-    ├───utils
-    │   │   audio_handler.py
-    │   │   inference.py
-    │   │
-    │   └───__pycache__
-    │           inference.cpython-37.pyc
-    │
-    └───__pycache__
-            operators.cpython-37.pyc
-            panels.cpython-37.pyc
-            __init__.cpython-37.pyc
+├─ imgs
+│  ├─ Logo_Blender.svg.png
+│  ├─ side_panel.png
+│  ├─ speech_driven_animation.gif
+│  └─ voca.png
+├─ install-dependencies.command
+├─ install-dependencies.sh
+├─ LICENSE
+├─ README.md
+├─ script-utils
+│  └─ ctypesloader.py
+└─ voca-addon
+   ├─ audio
+   │  ├─ sentence20.wav
+   │  └─ test_sentence.wav
+   ├─ flame
+   │  └─ generic_model.pkl
+   ├─ model
+   ├─ operators.py
+   ├─ panels.py
+   ├─ smpl_webuser
+   │  ├─ lbs.py
+   │  ├─ LICENSE.txt
+   │  ├─ posemapper.py
+   │  ├─ serialization.py
+   │  ├─ verts.py
+   │  └─ __init__.py
+   ├─ template
+   │  └─ FLAME_sample.ply
+   ├─ utils
+   │  ├─ audio_handler.py
+   │  ├─ edit_sequences.py
+   │  └─ inference.py
+   └─ __init__.py
 
 ```
-
 # ✍️ Authors <a name = "authors"></a>
 
 - Conti Edoardo [@edoardo-conti](https://github.com/edoardo-conti)

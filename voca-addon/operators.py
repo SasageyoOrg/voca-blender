@@ -8,10 +8,10 @@ from os import listdir
 from contextlib import redirect_stdout
 from pathlib import Path
 
-# from . utils.inference import inference
-# from . utils.edit_sequences import add_eye_blink
-# from . utils.edit_sequences import alter_sequence_shape
-# from . utils.edit_sequences import alter_sequence_head_pose
+from . utils.inference import inference
+from . utils.edit_sequences import add_eye_blink
+from . utils.edit_sequences import alter_sequence_shape
+from . utils.edit_sequences import alter_sequence_head_pose
 
 # MAIN OPERATOR: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Run model VOCA ============================
