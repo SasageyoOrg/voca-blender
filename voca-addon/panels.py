@@ -15,8 +15,34 @@ from bpy.props import ( StringProperty,
                         )
 
 # ---------------------------------------------------------------------------- #
-#                              Props and callbacks                             #
+#                             Callbacks and props                              #
 # ---------------------------------------------------------------------------- #
+
+
+def loadUI_w_label(scene, name, box):
+    row = box.row()
+    # add space on var name
+    name_string = re.sub(r'(?<=[a-z])(?=[A-Z])', ' ',
+                         name).replace('_edit', '').replace(' Path', '')
+    row.label(text=name_string + ': ')
+    row = box.row()
+    row.prop(scene, name)
+
+
+def loadUI_no_label(scene, box, props, check, choice_texture):
+    for (prop_name, _) in props:
+        row = box.row()
+        # Disable row if not checked
+        if prop_name != check:
+            row = row.row()
+            row.enabled = choice_texture
+        row.prop(scene, prop_name)
+
+
+def hide_callback(self, context):
+    for obj in bpy.context.blend_data.objects:
+        if obj.type == 'MESH' and (not "VOCA" in obj.name):
+            obj.hide_viewport = context.scene.hide
 
 PROPS = { 
          # -------------------------------- Main props -------------------------------- #
@@ -71,29 +97,6 @@ PROPS = {
     # -------------------------------- Other props ------------------------------- #
     'HIDE': [('hide', BoolProperty(name="Hide meshes", description="Check-box to hide no-VOCA meshes", default=False, update=hide_callback))]
 }
-
-def loadUI_w_label(scene, name, box):
-    row = box.row()
-    # add space on var name
-    name_string = re.sub(r'(?<=[a-z])(?=[A-Z])', ' ', name).replace('_edit','').replace(' Path','')
-    row.label(text = name_string + ': ')
-    row = box.row()
-    row.prop(scene, name)
-
-def loadUI_no_label(scene, box, props, check, choice_texture):
-    for (prop_name, _) in props:
-        row = box.row()
-        # Disable row if not checked
-        if prop_name != check:
-            row = row.row()
-            row.enabled = choice_texture
-        row.prop(scene, prop_name)
-
-
-def hide_callback(self, context):
-    for obj in bpy.context.blend_data.objects:
-        if obj.type == 'MESH' and (not "VOCA" in obj.name):
-            obj.hide_viewport = context.scene.hide
 
 # ---------------------------------------------------------------------------- #
 #                                    Panels                                    #
