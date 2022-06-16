@@ -19,14 +19,15 @@ import os
 import sys
 from pathlib import Path
 
-# get home directory to build the absolute path to virtual environment's python3.7 
-homeuserdir = str(Path.home())
-abs_path = homeuserdir + '/.virtualenvs/vocablender/lib/python3.7/site-packages'
-# get the index of the blender's python lib in $PATH variable
-sys_path_index = next(i for i, string in enumerate(sys.path) if 'site-packages' in string)
-# insert the virtual environment's python into the sys.path if needed
-if not any('.virtualenvs/vocablender' in string for string in sys.path) :
-    sys.path.insert(sys_path_index, abs_path)
+# # get home directory to build the absolute path to virtual environment's python3.7 
+# homeuserdir = str(Path.home())
+# abs_path = homeuserdir + '/.virtualenvs/vocablender/lib/python3.7/site-packages'
+# # get the index of the blender's python lib in $PATH variable
+# sys_path_index = next(i for i, string in enumerate(sys.path) if 'site-packages' in string)
+# # insert the virtual environment's python into the sys.path if needed
+# if not any('.virtualenvs/vocablender' in string for string in sys.path) :
+#     sys.path.insert(sys_path_index, abs_path)
+
 # print(sys.path)
 
 import tempfile
