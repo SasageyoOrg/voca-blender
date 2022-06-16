@@ -7,7 +7,6 @@ from contextlib import redirect_stdout
 from pathlib import Path
 
 from . utils.inference import inference
-# from . utils.edit_sequences import edit_sequences
 from . utils.edit_sequences import add_eye_blink
 from . utils.edit_sequences import alter_sequence_shape
 from . utils.edit_sequences import alter_sequence_head_pose
@@ -22,7 +21,7 @@ class Run_VOCA(Operator):
 
     def execute(self, context):                  # execute() is called when running the operator.
         # get params by the panel
-        path_voca = (
+        (template_fname, audio_fname, out_path, uv_template_fname, texture_img_fname, condition_idx) = (
             context.scene.TemplatePath,
             context.scene.AudioPath,
             context.scene.OutputPath,
@@ -30,7 +29,6 @@ class Run_VOCA(Operator):
             context.scene.TextureIMGPath,
             context.scene.Condition
         )
-        (template_fname, audio_fname, out_path, uv_template_fname, texture_img_fname, condition_idx) =  path_voca
 
         # Standard VOCA's Path
         addondir = bpy.utils.user_resource('SCRIPTS', 'addons')
@@ -129,43 +127,39 @@ class Mesh_Import(Operator):
         main_obj.name = "VOCA_mesh"
 
     def add_audio(self, scene, audio_filepath): 
-        scene.sequence_editor.sequences.new_sound("audio", audio_filepath, 1, 0)        
+        name_audio = 'VOCA_' + (audio_filepath.rsplit("/")[-1])
+        scene.sequence_editor.sequences.new_sound(name_audio, audio_filepath, 1, 0)
 
     def execute(self, context):        
-         # get params by the panel
         if self.choice == 1:
-            # params of import meshes pannel
-            path_mesh = (
+            # params of IMPORT MESHES PANEL
+            (audio_fname, out_path) = (
                 context.scene.AudioPathMesh,
                 context.scene.MeshPath
             )
-            (audio_fname, out_path) =  path_mesh  
+            self.add_audio(context.scene, audio_fname)  
         elif self.choice == 2:
-            # params of run model pannel
-            path_voca = (
-                # context.scene.TemplatePath,
+            # params of RUN MODEL PANL
+            (audio_fname, out_path) = (
                 context.scene.AudioPath,
-                context.scene.OutputPath
+                (context.scene.OutputPath + 'meshes/')
             )
-            # (_, audio_fname, out_path) =  path_voca
-            (audio_fname, out_path) =  path_voca
-            out_path = out_path + 'meshes/'
+            self.add_audio(context.scene, audio_fname)
         elif self.choice == 3:
-            # params of run model pannel
-            path_edit = (
-                # context.scene.TemplatePath,
+            # params of EDIT PANEL
+            (audio_fname, out_path) = (
                 context.scene.AudioPath_edit,
-                context.scene.OutputPath_edit
+                (context.scene.OutputPath_edit + 'meshes/')
             )
-            (audio_fname, out_path) =  path_edit
-            out_path = out_path + 'meshes/'
-
-        print(audio_fname, out_path)
+            
+            list_sounds = context.scene.sequence_editor.sequences
+            cond = any('VOCA' in strip.name for strip in list_sounds)
+            if not cond:
+                self.add_audio(context.scene, audio_fname)
 
         print("IMPORT\n")
         # IMPORTING MESHES
         self.create_shapekeys(out_path)
-        self.add_audio(context.scene, audio_fname)
 
         # set the camera
         context.scene.camera.rotation_euler = (0,0,0)
@@ -186,14 +180,14 @@ class Mesh_Edit(Operator):
 
     def execute(self, context):                  # execute() is called when running the operator.
         # get params by the panel
-        path_edit = (
+        (source_path, out_path, flame_model_path, mode, uv_template_fname, texture_img_fname) = (
             context.scene.SourceMeshPath_edit,
             context.scene.OutputPath_edit,
             context.scene.FlameModelPath_edit,
-            context.scene.AudioPath_edit,
-            context.scene.DropdownChoice
+            context.scene.DropdownChoice,
+            context.scene.TextureObjPath_edit,
+            context.scene.TextureIMGPath_edit,
         )
-        (source_path, out_path, flame_model_path, _, mode) =  path_edit
 
         mode_edit = (
             context.scene.n_blink,
@@ -204,9 +198,6 @@ class Mesh_Edit(Operator):
             context.scene.maxVariation_pose
         )
 
-        uv_template_fname = ''
-        texture_img_fname = ''
-
         if mode == 'Blink':
             (param_a, param_b, _, _, _, _) =  mode_edit
             add_eye_blink(source_path, out_path, flame_model_path, param_a, param_b, uv_template_fname=uv_template_fname, texture_img_fname=texture_img_fname)
@@ -216,18 +207,6 @@ class Mesh_Edit(Operator):
         elif mode == 'Pose':
             (_, _, _, _, param_a, param_b) =  mode_edit
             alter_sequence_head_pose(source_path, out_path, flame_model_path, pose_idx=param_a, rot_angle=param_b, uv_template_fname=uv_template_fname, texture_img_fname=texture_img_fname)
-
-        # print("Start edit")
-        # edit_sequences( mode,
-        #                 param_a,
-        #                 param_b,
-        #                 source_path, 
-        #                 out_path, 
-        #                 flame_model_path, 
-        #                 uv_template_fname=uv_template_fname, 
-        #                 texture_img_fname=texture_img_fname
-        #                 ) 
-        # print("End edit\n")       
 
         # Call Import Meshes
         bpy.ops.opr.meshimport('EXEC_DEFAULT', choice = 3)
