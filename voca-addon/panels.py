@@ -1,23 +1,25 @@
-import bpy
-from math import pi
+# ---------------------------------------------------------------------------- #
+#                                Module imports                                #
+# ---------------------------------------------------------------------------- #
 
+import bpy
+import re
+from curses import panel
+from math import pi
 from bpy.types import Panel
 from bpy.props import ( StringProperty,
                         BoolProperty,
                         IntProperty,
                         FloatProperty,
                         EnumProperty,
-                    )
+                        )
 
-import re
-
-def hide_callback(self, context):
-    for obj in bpy.context.blend_data.objects:
-        if obj.type == 'MESH' and (not "VOCA" in obj.name):
-            obj.hide_viewport = context.scene.hide
-            
+# ---------------------------------------------------------------------------- #
+#                              Props and callbacks                             #
+# ---------------------------------------------------------------------------- #
 
 PROPS = { 
+         # -------------------------------- Main props -------------------------------- #
     'RUN': [
         ('TemplatePath', StringProperty(name = "", default = "path_to_template.ply", description = "Define the root path of the Template", subtype = 'FILE_PATH')),
         ('AudioPath', StringProperty(name = "", default = "path_to_audio.wav", description = "Define the root path of the Audio", subtype = 'FILE_PATH')),
@@ -33,6 +35,7 @@ PROPS = {
         ('AudioPathMesh', StringProperty(name = "", default = "path_to_audio.wav", description = "Define the root path of the Audio", subtype = 'FILE_PATH')),
         ('MeshPath', StringProperty(name = "", default = "path_to_meshes/", description = "Define the root path of the Output", subtype = 'DIR_PATH'))
     ],
+    # -------------------------------- Edit props -------------------------------- #
     'EDIT':[
         ('SourceMeshPath_edit', StringProperty(name = "", default = "path_to_source_meshes/", description = "Define the root path of the Source", subtype = 'DIR_PATH')),
         ('OutputPath_edit', StringProperty(name = "", default = "path_to_output_edited/", description = "Define the root path of the Output", subtype = 'DIR_PATH')),
@@ -65,6 +68,7 @@ PROPS = {
         ('TextureObjPath_edit', StringProperty(name = "", default = "path_to_OBJ/", description = "Define the root path of the OBJ texture", subtype = 'FILE_PATH')),
         ('TextureIMGPath_edit', StringProperty(name = "", default = "path_to_IMG/", description = "Define the root path of the IMG texture", subtype = 'FILE_PATH'))
     ],
+    # -------------------------------- Other props ------------------------------- #
     'HIDE': [('hide', BoolProperty(name="Hide meshes", description="Check-box to hide no-VOCA meshes", default=False, update=hide_callback))]
 }
 
@@ -85,7 +89,17 @@ def loadUI_no_label(scene, box, props, check, choice_texture):
             row.enabled = choice_texture
         row.prop(scene, prop_name)
 
-# RUN VOCA ==================================
+
+def hide_callback(self, context):
+    for obj in bpy.context.blend_data.objects:
+        if obj.type == 'MESH' and (not "VOCA" in obj.name):
+            obj.hide_viewport = context.scene.hide
+
+# ---------------------------------------------------------------------------- #
+#                                    Panels                                    #
+# ---------------------------------------------------------------------------- #
+
+# ------------------------------ Run Voca panel ------------------------------ #
 class run_model_panel(Panel):
     bl_idname = "VOCA_PT_run_model"
     bl_label = 'Run VOCA Model'
@@ -108,9 +122,8 @@ class run_model_panel(Panel):
 
         col = self.layout.column()
         col.operator('opr.runvoca', text='Run')
-# ===========================================
 
-# IMPORTING MESHES ==========================
+# ---------------------------- Import meshes panel --------------------------- #
 class mesh_import_panel(Panel):
     bl_idname = "VOCA_PT_mesh_import"
     bl_label = 'Import Mesh'
@@ -128,9 +141,8 @@ class mesh_import_panel(Panel):
 
         col = self.layout.column()
         col.operator('opr.meshimport', text='Import')
-# ===========================================
 
-# DEV PANEL =================================
+# --------------------------------- Dev Panel -------------------------------- #
 class dev_pannel(Panel):
     bl_idname = "VOCA_PT_dev_obj"
     bl_label = 'Dev'
@@ -144,7 +156,7 @@ class dev_pannel(Panel):
         col = self.layout.column()
         row = col.row(align=True)
 
-        # Box to clean obj --------
+        # ----------------------------- Clean options box ---------------------------- #
         box = layout.box()
         row = box.row()
         row.prop(context.scene, PROPS['HIDE'][0][0], text="Hide non-VOCA meshes")
@@ -154,7 +166,7 @@ class dev_pannel(Panel):
         row = box.row()
         row.operator("object.delete_meshes", text="Delete ALL Object")
 
-        # EDIT MESHES boxes -------
+        # ------------------------------ Edit meshes box ----------------------------- #
         # add path UI
         box_edit = layout.box()
         box = box_edit.box()
@@ -169,14 +181,14 @@ class dev_pannel(Panel):
             box = box_edit.box()
             loadUI_w_label(context.scene, PROPS['EDIT'][3][0], box)
         
-        # add mode UI
+        # ------------------------------- Add mode box ------------------------------- #
         box = box_edit.box()
         row = box.row()
         row.prop(context.scene, PROPS['EDIT'][4][0])
         mode = context.scene.DropdownChoice
         loadUI_no_label(context.scene, box, PROPS[mode.upper()], '', True)
 
-        # Texture
+        # --------------------------- Texture settings box --------------------------- #
         box = box_edit.box()
         choice_texture = context.scene.AddTexture_edit
         loadUI_no_label(context.scene, box, PROPS['TEXTURE_EDIT'], 'AddTexture_edit', choice_texture)
@@ -184,5 +196,3 @@ class dev_pannel(Panel):
         # col = self.layout.column()
         col = box_edit.column()
         col.operator('opr.meshedit', text='Run')
-
-# ===========================================
