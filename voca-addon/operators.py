@@ -1,3 +1,4 @@
+# Modules imports
 import bpy
 import sys
 sys.tracebacklimit = -1
@@ -13,16 +14,19 @@ from . utils.edit_sequences import add_eye_blink
 from . utils.edit_sequences import alter_sequence_shape
 from . utils.edit_sequences import alter_sequence_head_pose
 
-# MAIN OPERATOR: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Run model VOCA ============================
-class Run_VOCA(Operator):
-    """VOCA Inference"""                         # Use this as a tooltip for menu items and buttons.
-    bl_idname = "opr.runvoca"                    # Unique identifier for buttons and menu items to reference.
-    bl_label = "Run VOCA"                        # Display name in the interface.
-    bl_options = {'REGISTER', 'UNDO'}            # Enable undo for the operator.
+# ---------------------------------------------------------------------------- #
+#                                MAIN OPERATORS                                #
+# ---------------------------------------------------------------------------- #
 
-    def execute(self, context):                  # execute() is called when running the operator.
-        # get params by the panel
+# --------------------------------- Run VOCA --------------------------------- #
+class Run_VOCA(Operator):
+    """VOCA Inference"""
+    bl_idname = "opr.runvoca"
+    bl_label = "Run VOCA"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        # get props
         (template_fname, audio_fname, out_path, uv_template_fname, texture_img_fname, condition_idx) = (
             context.scene.TemplatePath,
             context.scene.AudioPath,
@@ -37,7 +41,7 @@ class Run_VOCA(Operator):
         tf_model_fname = addondir + '/voca-addon/model/gstep_52280.model'
         ds_fname =  addondir + '/voca-addon/ds_graph/output_graph.pb'
 
-        # Inferenceq
+        # Inference
         print("Start inference")
         try:
             inference(tf_model_fname, 
@@ -59,15 +63,16 @@ class Run_VOCA(Operator):
         except Exception as e:
             self.report({"ERROR"}, ("Errore: " + str(e)))
  
-        return {'FINISHED'}            # Lets Blender know the operator finished successfully.
-# ===========================================
+        return {'FINISHED'}
 
-# Import Meshes =============================
+
+# ------------------------------- Import Meshes ------------------------------ #
+
 class Mesh_Import(Operator):
-    """VOCA Inference"""                    # Use this as a tooltip for menu items and buttons.
-    bl_idname = "opr.meshimport"            # Unique identifier for buttons and menu items to reference.
-    bl_label = "Mesh Import"                # Display name in the interface.
-    bl_options = {'REGISTER', 'UNDO'}       # Enable undo for the operator.
+    """VOCA Inference"""
+    bl_idname = "opr.meshimport"
+    bl_label = "Mesh Import"
+    bl_options = {'REGISTER', 'UNDO'}
 
     choice : IntProperty(default = 1)
 
@@ -87,25 +92,25 @@ class Mesh_Import(Operator):
 
         
         def objtodefault(obj):     
-            # imposta la posizione e la rotazione a default (0,0,0)
+            # set default position and rotation
             obj.location = [0, 0, 0]
-            obj.rotation_euler = [0, 0, 0] # faccia verso asse z
+            obj.rotation_euler = [0, 0, 0] # face z-axis
 
 
         # import first obj
         import_obj(str(filepaths[0]))
-        # mette in primo piano la selezione (todo: guarda -1)
+        # foreground selected object
         main_obj = bpy.context.selected_objects[-1]
         objtodefault(main_obj)
 
         # todo: da vedere
         main_obj.shape_key_add(name=main_obj.name)
-        # smoothing dell'oggetto
+        # mesh smoothing
         for face in main_obj.data.polygons:
             face.use_smooth = True
         # todo: shape key con le varie mesh relative alla prima per ogni istante
         main_key = main_obj.data.shape_keys
-        # attiva l'oggetto in primo piano
+        # active foreground object
         bpy.context.view_layer.objects.active = main_obj
         seq_len = len(filepaths)
         
@@ -113,14 +118,14 @@ class Mesh_Import(Operator):
         try:
             for i, filepath in enumerate(filepaths[1:]):
                 import_obj(str(filepath))
-                # mette in primo piano la selezione (todo: guarda -1)
+                # foreground selected object
                 current_obj = bpy.context.selected_objects[-1]
                 objtodefault(current_obj)
 
-                # importa tutti gli oggetti e poi con join copia gli shape keys nel primo
+                # join shape keys from imported meshes into the first one
                 bpy.ops.object.join_shapes()
 
-                # remove meshes
+                # remove other meshes meshes
                 bpy.data.objects.remove(current_obj, do_unlink=True)    
         except Exception as e:
             self.report({"ERROR"}, ("Errore: " + str(e)))
@@ -141,7 +146,7 @@ class Mesh_Import(Operator):
         bpy.context.scene.frame_end = seq_len - 1
         bpy.context.scene.frame_set(0)
 
-        # Rename obj
+        # rename obj
         main_obj.name = "VOCA_mesh"
 
     def add_audio(self, scene, audio_filepath): 
@@ -186,7 +191,7 @@ class Mesh_Import(Operator):
         except Exception  as e:
             self.report({"ERROR"}, ("Errore: " + str(e)))
             
-        # set the camera
+        # set the camera location and rotation
         context.scene.camera.rotation_euler = (0,0,0)
         context.scene.camera.location = (0, -0.02, 1.2)
 
@@ -194,17 +199,17 @@ class Mesh_Import(Operator):
         context.scene.render.fps = 60   
  
         return {'FINISHED'}                  
-# ===========================================
 
-# Edit Meshes VOCA ============================
+
+# ----------------------------- Edit Meshes VOCA ----------------------------- #
 class Mesh_Edit(Operator):
-    """VOCA Inference"""                         # Use this as a tooltip for menu items and buttons.
-    bl_idname = "opr.meshedit"                   # Unique identifier for buttons and menu items to reference.
-    bl_label = "Mesh Edit"                       # Display name in the interface.
-    bl_options = {'REGISTER', 'UNDO'}            # Enable undo for the operator.
+    """VOCA Inference"""
+    bl_idname = "opr.meshedit"
+    bl_label = "Mesh Edit"
+    bl_options = {'REGISTER', 'UNDO'}
 
-    def execute(self, context):                  # execute() is called when running the operator.
-        # get params by the panel
+    def execute(self, context):
+        # get props
         (source_path, out_path, flame_model_path, mode, uv_template_fname, texture_img_fname) = (
             context.scene.SourceMeshPath_edit,
             context.scene.OutputPath_edit,
@@ -223,6 +228,7 @@ class Mesh_Edit(Operator):
             context.scene.maxVariation_pose
         )
         
+        # switch modes
         try:
             if mode == 'Blink':
                 (param_a, param_b, _, _, _, _) = mode_edit
@@ -245,12 +251,13 @@ class Mesh_Edit(Operator):
         except Exception as e:
             self.report({"ERROR"}, ("Errore: " + str(e)))
  
-        return {'FINISHED'}            # Lets Blender know the operator finished successfully.
-# ===========================================
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        return {'FINISHED'}
 
-# HANDLE MESHES OPERATORS: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# DELETE ALL MESHES ========================================
+# ---------------------------------------------------------------------------- #
+#                                OTHER OPERATORS                               #
+# ---------------------------------------------------------------------------- #
+
+# ----------------------------- DELETE ALL MESHES ---------------------------- #
 class Mesh_Delete(Operator):
     bl_idname = 'object.delete_meshes'
     bl_label = 'Delete meshes'
@@ -264,7 +271,7 @@ class Mesh_Delete(Operator):
                 bpy.ops.object.delete()
         return {'FINISHED'}
 
-# DELETE OTHER MESHES ========================================
+# ---------------------------- DELETE OTHER MESHES --------------------------- #
 class Mesh_Delete_Other(Operator):
     bl_idname = 'object.delete_other_meshes'
     bl_label = 'Delete other meshes'
