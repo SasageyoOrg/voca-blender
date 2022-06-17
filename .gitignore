@@ -1,6 +1,7 @@
 voca-addon/animation-output
 voca-addon/ds_graph/output_graph.pb
 .DS_Store
+voca-addon.zip
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
