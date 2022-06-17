@@ -61,7 +61,7 @@ class Run_VOCA(Operator):
 
         # Call Import Meshes
         try:
-            bpy.ops.opr.meshimport('EXEC_DEFAULT')
+            bpy.ops.opr.meshimport('EXEC_DEFAULT', choice = 2)
         except Exception as e:
             self.report({"ERROR"}, ("Errore: " + str(e)))
  

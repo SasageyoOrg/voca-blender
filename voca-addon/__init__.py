@@ -18,10 +18,7 @@ import importlib
 import shutil
 from collections import namedtuple
 from sys import platform
-
-
-# CLASSES = []
-# PROPS = {}
+import time
 
 # Declare all modules that this add-on depends on, that may need to be installed. The package and (global) name can be
 # set to None, if they are equal to the module name. See import_module and ensure_and_import_module for the explanation
@@ -41,6 +38,17 @@ dependencies = (Dependency(module="scipy", package=None, name=None, importable=T
                 Dependency(module="pyrender", package=None, name=None, importable=False))
 
 dependencies_installed = False
+
+PROP_DEP = [
+    ('installing', bpy.props.BoolProperty(default = False)),
+    ('uninstalling', bpy.props.BoolProperty(default = False))
+]
+
+def refresh_all_areas():
+    for wm in bpy.data.window_managers:
+        for w in wm.windows:
+            for area in w.screen.areas:
+                area.tag_redraw()
 
 def install_pip():
     try:
@@ -87,38 +95,6 @@ def install_and_import_module(module_name, package_name=None, global_name=None, 
     import_module(module_name, global_name, importable)
 
 
-# def install_and_import_modules():
-#     # Create a copy of the environment variables and modify them for the subprocess call
-#     environ_copy = dict(os.environ)
-#     environ_copy["PYTHONNOUSERSITE"] = "1"
-
-#     temp_abs_dir = "/Users/sasageyo/Downloads/voca-blender/voca-addon/requirements.txt"
-#     subprocess.run([sys.executable, "-m", "pip", "install", "-r", temp_abs_dir], check=True, env=environ_copy)
-
-#     # The installation succeeded, attempt to import the module again
-#     for dependency in dependencies:
-#         import_module(dependency.module, dependency.name, dependency.importable)
-
-#     # fix protobuf module version
-#     subprocess.run([sys.executable, "-m", "pip", "install", "--upgrade", "protobuf==3.20.0"], check=True, env=environ_copy)
-
-#     # install Mesh from remote wheel
-#     temp_whl = "https://github.com/MPI-IS/mesh/releases/download/v0.4/psbody_mesh-0.4-cp37-cp37m-macosx_10_9_x86_64.whl"
-#     subprocess.run([sys.executable, "-m", "pip", "install", temp_whl], check=True, env=environ_copy)
-
-#     # fix the OpenGL package
-#     src = "/Users/sasageyo/Downloads/voca-blender/script-utils/ctypesloader.py"
-#     dst = "/Applications/Blender.app/Contents/Resources/2.92/python/lib/python3.7/site-packages/OpenGL/platform/ctypesloader.py"
-#     try:
-#         shutil.copy(src, dst)
-#         print("File copied successfully.")
-#     except shutil.SameFileError:
-#         print("Source and destination represents the same file.")
-#     except PermissionError:
-#         print("Permission denied.")
-#     except:
-#         print("Error occurred while copying file.")
-
 def complete_installation(): 
     # Create a copy of the environment variables and modify them for the subprocess call
     environ_copy = dict(os.environ)
@@ -147,13 +123,6 @@ def complete_installation():
         except:
             print("Error occurred while copying file.")
 
-# def uninstall_modules():
-#     # Create a copy of the environment variables and modify them for the subprocess call
-#     environ_copy = dict(os.environ)
-#     environ_copy["PYTHONNOUSERSITE"] = "1"
-
-#     temp_abs_dir = "/Users/sasageyo/Downloads/voca-blender/voca-addon/requirements.txt"
-#     subprocess.run([sys.executable, "-m", "pip", "uninstall", "-y" "-r", temp_abs_dir], check=True, env=environ_copy)
 
 def uninstall_modules():
     # Create a copy of the environment variables and modify them for the subprocess call
@@ -161,10 +130,6 @@ def uninstall_modules():
     environ_copy["PYTHONNOUSERSITE"] = "1"
 
     for dependency in dependencies:
-        # module_to_remove = dependency.package
-        # if dependency.package is None:
-        #     module_to_remove = dependency.module
-
         module_to_remove = dependency.module if dependency.package is None else dependency.package
 
         subprocess.run([sys.executable, "-m", "pip", "uninstall", "-y", module_to_remove], check=True, env=environ_copy)
@@ -201,11 +166,6 @@ def custom_un_register(mode):
         for klass in CLASSES:
             bpy.utils.unregister_class(klass)
 
-
-# GLOBAL Var ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 class EXAMPLE_PT_warning_panel(bpy.types.Panel):
     bl_label = "Dependencies Warning"
     bl_category = "VOCA"
@@ -219,17 +179,20 @@ class EXAMPLE_PT_warning_panel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        lines = [f"Please install the missing dependencies for the \"{bl_info.get('name')}\" add-on.",
-                 f"1. Open the preferences (Edit > Preferences > Add-ons).",
-                 f"2. Search for the \"{bl_info.get('name')}\" add-on.",
-                 f"3. Open the details section of the add-on.",
-                 f"4. Click on the \"{EXAMPLE_OT_install_dependencies.bl_label}\" button.",
-                 f"   This will download and install the missing Python packages, if Blender has the required",
-                 f"   permissions."]
-    
+        if not context.scene.installing :
+            lines = [f"Please install the missing dependencies for the \"{bl_info.get('name')}\" add-on.",
+                    f"1. Open the preferences (Edit > Preferences > Add-ons).",
+                    f"2. Search for the \"{bl_info.get('name')}\" add-on.",
+                    f"3. Open the details section of the add-on.",
+                    f"4. Click on the \"{EXAMPLE_OT_install_dependencies.bl_label}\" button.",
+                    f"   This will download and install the missing Python packages, if Blender has the required",
+                    f"   permissions."]
+        else :
+            lines = [f"Installing the addon's dependencies",
+                    f"Please, wait until the end of the process."]
+
         for line in lines:
             layout.label(text=line)
-            
 
 class EXAMPLE_OT_install_dependencies(bpy.types.Operator):
     bl_idname = "example.install_dependencies"
@@ -246,15 +209,24 @@ class EXAMPLE_OT_install_dependencies(bpy.types.Operator):
 
     def execute(self, context):
         try:
+            # change ui and refresh
+            context.scene.installing = True 
+            refresh_all_areas()
+            context.area.tag_redraw()
+            time.sleep(1)
+            context.area.tag_redraw()
+            # start install ->
             install_pip()
-            # install_and_import_modules()
             for dependency in dependencies:
                 install_and_import_module(module_name=dependency.module,
                                           package_name=dependency.package,
                                           global_name=dependency.name,
                                           importable=dependency.importable)
-
             complete_installation()
+            # <- end install
+            # change ui and refresh
+            context.scene.installing = False
+            refresh_all_areas()
 
         except (subprocess.CalledProcessError, ImportError) as err:
             self.report({"ERROR"}, str(err))
@@ -299,8 +271,9 @@ class EXAMPLE_preferences(bpy.types.AddonPreferences):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator(EXAMPLE_OT_install_dependencies.bl_idname, icon="CONSOLE")
-        layout.operator(EXAMPLE_OT_uninstall_dependencies.bl_idname, icon="CONSOLE")
+        row = layout.row()
+        row.operator(EXAMPLE_OT_install_dependencies.bl_idname, icon="CONSOLE")
+        row.operator(EXAMPLE_OT_uninstall_dependencies.bl_idname, icon="CONSOLE")
 
 preference_classes = (EXAMPLE_PT_warning_panel,
                       EXAMPLE_OT_install_dependencies,
@@ -314,6 +287,8 @@ def register():
     
     for cls in preference_classes:
         bpy.utils.register_class(cls)
+    for (prop_name, prop_value) in PROP_DEP:
+        setattr(bpy.types.Scene, prop_name, prop_value)
 
     try:
         for dependency in dependencies:
@@ -326,10 +301,11 @@ def register():
         # Don't register other panels, operators etc.
         print("error, some packages are missing")
     
-    
 def unregister():  
     for cls in preference_classes:
         bpy.utils.unregister_class(cls)
+    for (prop_name, prop_value) in PROP_DEP:
+        delattr(bpy.types.Scene, prop_name)
     
     if dependencies_installed:
         custom_un_register(False)

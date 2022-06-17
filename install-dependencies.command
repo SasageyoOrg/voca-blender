@@ -53,33 +53,17 @@ fi
 BLENDER_SCRIPTS_DIR="/Applications/Blender.app/Contents/Resources/2.92/scripts"
 BLENDER_MODULE_DIR="/Applications/Blender.app/Contents/Resources/2.92/scripts/modules"
 
+# create the 'modules' directory in blender if not already there
 mkdir -p "$BLENDER_SCRIPTS_DIR"/modules
+# make sure pip version is up-to-date
 pip install -t $BLENDER_MODULE_DIR -U pip
+# install dependencies
+echo "\n${bold}> installing pip modules...${normal}"
 pip install -t $BLENDER_MODULE_DIR wget numpy scipy chumpy opencv-python resampy python-speech-features tensorflow==1.15.2 scikit-learn image ipython matplotlib trimesh pyrender
 pip install -t $BLENDER_MODULE_DIR  --upgrade protobuf==3.20.0
 pip install -t $BLENDER_MODULE_DIR https://github.com/MPI-IS/mesh/releases/download/v0.4/psbody_mesh-0.4-cp37-cp37m-macosx_10_9_x86_64.whl
 cp $SCRIPT_PATH /Applications/Blender.app/Contents/Resources/2.92/scripts/modules/OpenGL/platform/ctypesloader.py
-
-# # create a hidden directory for the venv in the home
-# echo "\n${bold}> creating the python virtual environment${normal}"
-# mkdir -p .virtualenvs
-# # create the virtual environment and activate it
-# python3 -m venv .virtualenvs/vocablender
-# source .virtualenvs/vocablender/bin/activate
-# # make sure pip version is up-to-date
-# pip install -U pip
-# echo "  ${bold}ok${normal}"
-# # install dependencies
-# echo "\n${bold}> installing pip modules...${normal}"
-# pip install wget numpy scipy chumpy opencv-python resampy python-speech-features tensorflow==1.15.2 scikit-learn image ipython matplotlib trimesh pyrender
-# pip install --upgrade protobuf==3.20.0
-# cp $SCRIPT_PATH .virtualenvs/vocablender/lib/python3.7/site-packages/OpenGL/platform/ctypesloader.py
-# echo "  ${bold}ok${normal}"
-
-# # install mesh lib
-# echo "\n${bold}> installing psbody-mesh...${normal}"
-# pip install https://github.com/MPI-IS/mesh/releases/download/v0.4/psbody_mesh-0.4-cp37-cp37m-macosx_10_9_x86_64.whl
-# echo "  ${bold}ok${normal}"
+echo "  ${bold}ok${normal}"
 
 # reset the python system version
 pyenv local system
