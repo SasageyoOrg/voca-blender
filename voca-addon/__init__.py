@@ -20,6 +20,9 @@ from collections import namedtuple
 from sys import platform
 import time
 
+sleep = 1
+
+
 # Declare all modules that this add-on depends on, that may need to be installed. The package and (global) name can be
 # set to None, if they are equal to the module name. See import_module and ensure_and_import_module for the explanation
 # of the arguments. DO NOT use this to import other parts of your Python add-on, import them as usual with an
@@ -51,6 +54,7 @@ def refresh_all_areas():
                 area.tag_redraw()
 
 def install_pip():
+    time.sleep(sleep)
     try:
         # Check if pip is already installed
         subprocess.run([sys.executable, "-m", "pip", "--version"], check=True)
@@ -62,6 +66,7 @@ def install_pip():
 
     # update pip
     subprocess.run([sys.executable, "-m", "pip", "install",  "-U", "pip"], check=True)
+    time.sleep(sleep)
 
 
 def import_module(module_name, global_name=None, importable="False", reload=True):
@@ -166,6 +171,13 @@ def custom_un_register(mode):
         for klass in CLASSES:
             bpy.utils.unregister_class(klass)
 
+
+Operations = {
+    "Installing pip...": install_pip,
+    "Installing modules...": install_and_import_module,
+    "Completing installation..": complete_installation
+}
+
 class EXAMPLE_PT_warning_panel(bpy.types.Panel):
     bl_label = "Dependencies Warning"
     bl_category = "VOCA"
@@ -178,7 +190,8 @@ class EXAMPLE_PT_warning_panel(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-
+        obj = context.object
+        
         if not context.scene.installing :
             lines = [f"Please install the missing dependencies for the \"{bl_info.get('name')}\" add-on.",
                     f"1. Open the preferences (Edit > Preferences > Add-ons).",
@@ -190,6 +203,7 @@ class EXAMPLE_PT_warning_panel(bpy.types.Panel):
         else :
             lines = [f"Installing the addon's dependencies",
                     f"Please, wait until the end of the process."]
+            
 
         for line in lines:
             layout.label(text=line)
@@ -201,44 +215,135 @@ class EXAMPLE_OT_install_dependencies(bpy.types.Operator):
                       "Internet connection is required. Blender may have to be started with "
                       "elevated permissions in order to install the package")
     bl_options = {"REGISTER", "INTERNAL"}
+    
+    def __init__(self):
+
+        self.step = 0
+        self.timer = None
+        self.done = False
+        self.max_step = None
+
+        # timer count, need to let a little bit of space between updates otherwise gui will not have time to update
+        self.timer_count = 0
 
     @classmethod
     def poll(self, context):
         # Deactivate when dependencies have been installed
         return not dependencies_installed
 
-    def execute(self, context):
-        try:
-            # change ui and refresh
-            context.scene.installing = True 
-            refresh_all_areas()
+    # def execute(self, context):
+
+    #     try:
+    #         # change ui and refresh
+    #         context.scene.installing = True 
+    #         refresh_all_areas()
+    #         context.area.tag_redraw()
+    #         time.sleep(1)
+    #         context.area.tag_redraw()
+    #         # start install ->
+    #         install_pip()
+    #         for dependency in dependencies:
+    #             install_and_import_module(module_name=dependency.module,
+    #                                       package_name=dependency.package,
+    #                                       global_name=dependency.name,
+    #                                       importable=dependency.importable)
+    #         complete_installation()
+    #         # <- end install
+    #         # change ui and refresh
+    #         context.scene.installing = False
+    #         refresh_all_areas()
+
+    #     except (subprocess.CalledProcessError, ImportError) as err:
+    #         self.report({"ERROR"}, str(err))
+    #         return {"CANCELLED"}
+
+    #     global dependencies_installed
+    #     dependencies_installed = True
+
+    #     # Import and register the panels and operators since dependencies are installed
+    #     custom_un_register(True)
+
+    #     return {"FINISHED"}
+
+    def modal(self, context, event):
+        
+
+        global Operations
+
+        #update progress bar
+        if not self.done:
+            print(f"Updating: {self.step+1}/{self.max_step}")
+            #update progess bar
+            context.object.progress = ((self.step+1)/(self.max_step))*100
+            #update label
+            context.object.progress_label = list(Operations.keys())[self.step]
+            #send update signal
             context.area.tag_redraw()
-            time.sleep(1)
-            context.area.tag_redraw()
-            # start install ->
-            install_pip()
-            for dependency in dependencies:
-                install_and_import_module(module_name=dependency.module,
-                                          package_name=dependency.package,
-                                          global_name=dependency.name,
-                                          importable=dependency.importable)
-            complete_installation()
-            # <- end install
-            # change ui and refresh
-            context.scene.installing = False
-            refresh_all_areas()
 
-        except (subprocess.CalledProcessError, ImportError) as err:
-            self.report({"ERROR"}, str(err))
-            return {"CANCELLED"}
+        #by running a timer at the same time of our modal operator
+        #we are guaranteed that update is done correctly in the interface
 
-        global dependencies_installed
-        dependencies_installed = True
+        if event.type == 'TIMER':
 
-        # Import and register the panels and operators since dependencies are installed
-        custom_un_register(True)
+            #but wee need a little time off between timers to ensure that blender have time to breath, so we have updated inteface
+            self.timer_count += 1
+            if self.timer_count == 10:
+                self.timer_count = 0
 
-        return {"FINISHED"}
+                if self.done:
+
+                    print("Finished")
+                    self.step = 0
+                    context.object.progress = 0
+                    context.window_manager.event_timer_remove(self.timer)
+                    context.area.tag_redraw()
+
+                    return {'FINISHED'}
+                
+                # RUNNING INSTALL OPERATIONS
+                if self.step < self.max_step:
+                    
+                    try:
+                        if(self.step == 1):
+                            for dependency in dependencies:
+                                list(Operations.values())[self.step](module_name=dependency.module,
+                                                                     package_name=dependency.package,
+                                                                     global_name=dependency.name,
+                                                                     importable=dependency.importable)
+                        else:
+                            list(Operations.values())[self.step]()
+                            
+                        #run step function
+
+                        self.step += 1
+                        if self.step == self.max_step:
+                            self.done = True
+                    except (subprocess.CalledProcessError, ImportError) as err:
+                        self.report({"ERROR"}, str(err))
+                        return {"CANCELLED"}
+                    return {'RUNNING_MODAL'}
+
+        return {'RUNNING_MODAL'}
+
+    def invoke(self, context, event):
+
+        print("")
+        print("Invoke")
+
+        #terermine max stepa
+        global Operations
+        if self.max_step == None:
+            self.max_step = len(Operations.keys())
+
+        context.window_manager.modal_handler_add(self)
+
+        #run timer
+        self.timer = context.window_manager.event_timer_add(
+            0.1, window=context.window)
+
+        return {'RUNNING_MODAL'}
+
+   
 
 class EXAMPLE_OT_uninstall_dependencies(bpy.types.Operator):
     bl_idname = "example.uninstall_dependencies"
@@ -268,17 +373,25 @@ class EXAMPLE_OT_uninstall_dependencies(bpy.types.Operator):
 
 class EXAMPLE_preferences(bpy.types.AddonPreferences):
     bl_idname = __name__
-
     def draw(self, context):
+        obj = context.object
         layout = self.layout
-        row = layout.row()
-        row.operator(EXAMPLE_OT_install_dependencies.bl_idname, icon="CONSOLE")
-        row.operator(EXAMPLE_OT_uninstall_dependencies.bl_idname, icon="CONSOLE")
+        if obj.progress:
+            progress_bar = layout.row()
+            progress_bar.prop(bpy.context.object, "progress")
+            progress_lbl = layout.row()
+            progress_lbl.active = False
+            progress_lbl.label(text=bpy.context.object.progress_label)
+        else:
+            row = layout.row()
+            row.operator(EXAMPLE_OT_install_dependencies.bl_idname, icon="CONSOLE")
+            row.operator(EXAMPLE_OT_uninstall_dependencies.bl_idname, icon="CONSOLE")
+
 
 preference_classes = (EXAMPLE_PT_warning_panel,
-                      EXAMPLE_OT_install_dependencies,
-                      EXAMPLE_OT_uninstall_dependencies,
-                      EXAMPLE_preferences)
+                    EXAMPLE_OT_install_dependencies,
+                    EXAMPLE_OT_uninstall_dependencies,
+                    EXAMPLE_preferences)
 
 # ADD-ON func ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 def register():
@@ -289,6 +402,11 @@ def register():
         bpy.utils.register_class(cls)
     for (prop_name, prop_value) in PROP_DEP:
         setattr(bpy.types.Scene, prop_name, prop_value)
+
+
+    bpy.types.Object.progress = bpy.props.FloatProperty(
+        name="Progress", subtype="PERCENTAGE", soft_min=0, soft_max=100, precision=0,)
+    bpy.types.Object.progress_label = bpy.props.StringProperty()
 
     try:
         for dependency in dependencies:
