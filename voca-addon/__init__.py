@@ -9,7 +9,9 @@ bl_info = {
     "doc_url": "",
     "category": "VOCA",
 }
-
+# ---------------------------------------------------------------------------- #
+#                                    Imports                                   #
+# ---------------------------------------------------------------------------- #
 import bpy
 import os
 import sys
@@ -20,9 +22,11 @@ from collections import namedtuple
 from sys import platform
 import time
 
-sleep = 1
 
 
+# ---------------------------------------------------------------------------- #
+#                               Global variables                               #
+# ---------------------------------------------------------------------------- #
 # Declare all modules that this add-on depends on, that may need to be installed. The package and (global) name can be
 # set to None, if they are equal to the module name. See import_module and ensure_and_import_module for the explanation
 # of the arguments. DO NOT use this to import other parts of your Python add-on, import them as usual with an
@@ -41,11 +45,20 @@ dependencies = (Dependency(module="scipy", package=None, name=None, importable=T
                 Dependency(module="pyrender", package=None, name=None, importable=False))
 
 dependencies_installed = False
+dependency_label = dependencies[0].module
+sleep = 1
+
 
 PROP_DEP = [
     ('installing', bpy.props.BoolProperty(default = False)),
     ('uninstalling', bpy.props.BoolProperty(default = False))
 ]
+
+# ---------------------------------------------------------------------------- #
+#                                   Functions                                  #
+# ---------------------------------------------------------------------------- #
+
+# -------------------------------- Refresh all ------------------------------- #
 
 def refresh_all_areas():
     for wm in bpy.data.window_managers:
@@ -53,22 +66,28 @@ def refresh_all_areas():
             for area in w.screen.areas:
                 area.tag_redraw()
 
+
+
+# -------------------------------- Install pip ------------------------------- #
 def install_pip():
     time.sleep(sleep)
-    try:
-        # Check if pip is already installed
-        subprocess.run([sys.executable, "-m", "pip", "--version"], check=True)
-    except subprocess.CalledProcessError:
-        # install pip
-        import ensurepip
-        ensurepip.bootstrap()
-        os.environ.pop("PIP_REQ_TRACKER", None)
+    # try:
+    #     # Check if pip is already installed
+    #     subprocess.run([sys.executable, "-m", "pip", "--version"], check=True)
+    # except subprocess.CalledProcessError:
+    # install pip
+    import ensurepip
+    ensurepip.bootstrap()
+    os.environ.pop("PIP_REQ_TRACKER", None)
 
     # update pip
     subprocess.run([sys.executable, "-m", "pip", "install",  "-U", "pip"], check=True)
     time.sleep(sleep)
 
 
+
+
+# ------------------------------- Import module ------------------------------ #
 def import_module(module_name, global_name=None, importable="False", reload=True):
     if global_name is None:
         global_name = module_name
@@ -84,7 +103,13 @@ def import_module(module_name, global_name=None, importable="False", reload=True
             print(module_name + ' module successfully imported')
 
 
+
+
+# ------------------------- Install and import module ------------------------ #
 def install_and_import_module(module_name, package_name=None, global_name=None, importable="False"):
+    time.sleep(sleep)
+    global dependency_label
+    dependency_label = module_name
     if package_name is None:
         package_name = module_name
     if global_name is None:
@@ -98,9 +123,13 @@ def install_and_import_module(module_name, package_name=None, global_name=None, 
 
     # The installation succeeded, attempt to import the module again
     import_module(module_name, global_name, importable)
+    time.sleep(sleep)
 
 
+
+# --------------------------- Complete installation -------------------------- #
 def complete_installation(): 
+    time.sleep(sleep)
     # Create a copy of the environment variables and modify them for the subprocess call
     environ_copy = dict(os.environ)
     environ_copy["PYTHONNOUSERSITE"] = "1"
@@ -127,8 +156,12 @@ def complete_installation():
             print("Permission denied.")
         except:
             print("Error occurred while copying file.")
+    time.sleep(sleep)
 
 
+
+
+# ----------------------------- Uninstall modules ---------------------------- #
 def uninstall_modules():
     # Create a copy of the environment variables and modify them for the subprocess call
     environ_copy = dict(os.environ)
@@ -172,12 +205,19 @@ def custom_un_register(mode):
             bpy.utils.unregister_class(klass)
 
 
+
 Operations = {
     "Installing pip...": install_pip,
     "Installing modules...": install_and_import_module,
     "Completing installation..": complete_installation
 }
 
+
+
+# ---------------------------------------------------------------------------- #
+#                                    Panels                                    #
+# ---------------------------------------------------------------------------- #
+# ------------------------------- Warning Panel ------------------------------ #
 class EXAMPLE_PT_warning_panel(bpy.types.Panel):
     bl_label = "Dependencies Warning"
     bl_category = "VOCA"
@@ -207,6 +247,16 @@ class EXAMPLE_PT_warning_panel(bpy.types.Panel):
 
         for line in lines:
             layout.label(text=line)
+            
+            
+            
+# ---------------------------------------------------------------------------- #
+#                                   Operators                                  #
+# ---------------------------------------------------------------------------- #
+
+
+
+# ----------------------- Install dependencies operator ---------------------- #
 
 class EXAMPLE_OT_install_dependencies(bpy.types.Operator):
     bl_idname = "example.install_dependencies"
@@ -269,14 +319,19 @@ class EXAMPLE_OT_install_dependencies(bpy.types.Operator):
         
 
         global Operations
-
+        global dependency_label
         #update progress bar
         if not self.done:
             print(f"Updating: {self.step+1}/{self.max_step}")
             #update progess bar
             context.object.progress = ((self.step+1)/(self.max_step))*100
             #update label
-            context.object.progress_label = list(Operations.keys())[self.step]
+            if self.step == 1:
+                progress_label = list(Operations.keys())[self.step] + ": " + dependency_label
+            else:
+                progress_label = list(Operations.keys())[self.step]
+            context.object.progress_label = progress_label
+
             #send update signal
             context.area.tag_redraw()
 
@@ -299,7 +354,7 @@ class EXAMPLE_OT_install_dependencies(bpy.types.Operator):
                     context.area.tag_redraw()
 
                     return {'FINISHED'}
-                
+            
                 # RUNNING INSTALL OPERATIONS
                 if self.step < self.max_step:
                     
@@ -320,7 +375,13 @@ class EXAMPLE_OT_install_dependencies(bpy.types.Operator):
                             self.done = True
                     except (subprocess.CalledProcessError, ImportError) as err:
                         self.report({"ERROR"}, str(err))
-                        return {"CANCELLED"}
+                        print("Finished")
+                        self.step = 0
+                        context.object.progress = 0
+                        context.window_manager.event_timer_remove(self.timer)
+                        context.area.tag_redraw()
+
+                        return {'FINISHED'}
                     return {'RUNNING_MODAL'}
 
         return {'RUNNING_MODAL'}
@@ -344,7 +405,9 @@ class EXAMPLE_OT_install_dependencies(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
    
-
+   
+   
+# ---------------------- Uninstall dependencies operator --------------------- #
 class EXAMPLE_OT_uninstall_dependencies(bpy.types.Operator):
     bl_idname = "example.uninstall_dependencies"
     bl_label = "Uninstall dependencies"
@@ -370,7 +433,9 @@ class EXAMPLE_OT_uninstall_dependencies(bpy.types.Operator):
         custom_un_register(False)
 
         return {"FINISHED"}
-
+    
+    
+# ----------------------------- Addon prferences ----------------------------- #
 class EXAMPLE_preferences(bpy.types.AddonPreferences):
     bl_idname = __name__
     def draw(self, context):
@@ -393,7 +458,9 @@ preference_classes = (EXAMPLE_PT_warning_panel,
                     EXAMPLE_OT_uninstall_dependencies,
                     EXAMPLE_preferences)
 
-# ADD-ON func ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ---------------------------------------------------------------------------- #
+#                             Register / Unregister                            #
+# ---------------------------------------------------------------------------- #
 def register():
     global dependencies_installed
     dependencies_installed = False
