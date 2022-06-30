@@ -51,6 +51,9 @@ def refresh_all_areas():
                 area.tag_redraw()
 
 def install_pip():
+    environ_copy = dict(os.environ)
+    environ_copy["PYTHONNOUSERSITE"] = "1"
+
     try:
         # Check if pip is already installed
         subprocess.run([sys.executable, "-m", "pip", "--version"], check=True)
@@ -62,6 +65,13 @@ def install_pip():
 
     # update pip
     subprocess.run([sys.executable, "-m", "pip", "install",  "-U", "pip"], check=True)
+
+    # some version checks before start!
+    # fix protobuf module version
+    subprocess.run([sys.executable, "-m", "pip", "install", "--upgrade", "protobuf==3.20.0"], check=True, env=environ_copy)
+    # todo: maybe macos only!
+    subprocess.run([sys.executable, "-m", "pip", "install", "--upgrade", "numpy==1.21.6"], check=True, env=environ_copy)
+    subprocess.run([sys.executable, "-m", "pip", "install", "--upgrade", "numba==0.55.2"], check=True, env=environ_copy)
 
 
 def import_module(module_name, global_name=None, importable="False", reload=True):
@@ -101,7 +111,7 @@ def complete_installation():
     environ_copy["PYTHONNOUSERSITE"] = "1"
 
     # fix protobuf module version
-    subprocess.run([sys.executable, "-m", "pip", "install", "--upgrade", "protobuf==3.20.0"], check=True, env=environ_copy)
+    # subprocess.run([sys.executable, "-m", "pip", "install", "--upgrade", "protobuf==3.20.0"], check=True, env=environ_copy)
 
     # install Mesh from remote wheel
     temp_whl = "https://github.com/MPI-IS/mesh/releases/download/v0.4/psbody_mesh-0.4-cp37-cp37m-macosx_10_9_x86_64.whl"
