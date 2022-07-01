@@ -21,6 +21,7 @@ import shutil
 from collections import namedtuple
 from sys import platform
 import time
+import platform
 
 
 
@@ -32,12 +33,13 @@ import time
 # of the arguments. DO NOT use this to import other parts of your Python add-on, import them as usual with an
 # "import" statement.
 Dependency = namedtuple("Dependency", ["module", "package", "name", "importable"])
+                
 dependencies = (Dependency(module="scipy", package=None, name=None, importable=True),
                 Dependency(module="chumpy", package=None, name="ch", importable=True),
                 Dependency(module="cv2", package="opencv-python", name=None, importable=True),
-                Dependency(module="resampy", package=None, name=None, importable=True),
+                Dependency(module="resampy", package=None, name=None, importable=False),
                 Dependency(module="python_speech_features", package=None, name=None, importable=True),
-                Dependency(module="tensorflow", package="tensorflow==1.15.2", name="tf", importable=True),
+                Dependency(module="tensorflow", package="tensorflow==1.15.2", name="tf", importable=False),
                 Dependency(module="sklearn", package="scikit-learn", name=None, importable=True),
                 Dependency(module="ipython", package=None, name=None, importable=False),
                 Dependency(module="matplotlib", package=None, name=None, importable=True),
@@ -93,6 +95,9 @@ def import_module(module_name, global_name=None, importable="False", reload=True
         global_name = module_name
 
     if importable :
+        print(f'importing {module_name}')
+        if(module_name == 'numba'):
+            os.environ['NUMBA_DISABLE_INTEL_SVML'] = '1'
         if global_name in globals():
             importlib.reload(globals()[global_name])
             print(module_name + ' module already there')
@@ -119,9 +124,12 @@ def install_and_import_module(module_name, package_name=None, global_name=None, 
     environ_copy = dict(os.environ)
     environ_copy["PYTHONNOUSERSITE"] = "1"
     # launch pip install
+    print('--- Installing module: '+ module_name + ' ---')
     subprocess.run([sys.executable, "-m", "pip", "install", package_name], check=True, env=environ_copy)
 
     # The installation succeeded, attempt to import the module again
+
+    
     import_module(module_name, global_name, importable)
     time.sleep(sleep)
 
@@ -138,7 +146,13 @@ def complete_installation():
     subprocess.run([sys.executable, "-m", "pip", "install", "--upgrade", "protobuf==3.20.0"], check=True, env=environ_copy)
 
     # install Mesh from remote wheel
-    temp_whl = "https://github.com/MPI-IS/mesh/releases/download/v0.4/psbody_mesh-0.4-cp37-cp37m-macosx_10_9_x86_64.whl"
+    if platform == "darwin":
+        # OS X
+        temp_whl = "https://github.com/MPI-IS/mesh/releases/download/v0.4/psbody_mesh-0.4-cp37-cp37m-macosx_10_9_x86_64.whl"
+    else:
+        # linux
+        temp_whl = "https://github.com/MPI-IS/mesh/releases/download/v0.4/psbody_mesh-0.4-cp37-cp37m-linux_x86_64.whl"
+
     subprocess.run([sys.executable, "-m", "pip", "install", temp_whl], check=True, env=environ_copy)
 
     # fix the OpenGL package (ony macOS -> darwin)
@@ -208,12 +222,19 @@ def custom_un_register(mode):
 
 Operations = {
     "Installing pip...": install_pip,
-    "Installing modules...": install_and_import_module,
+    "Installing scipy...": install_and_import_module,
+    "Installing chumpy...": install_and_import_module,
+    "Installing cv2...": install_and_import_module,
+    "Installing resampy...": install_and_import_module,
+    "Installing python_speech_features...": install_and_import_module,
+    "Installing tensorflow...": install_and_import_module,
+    "Installing sklearn...": install_and_import_module,
+    "Installing ipython...": install_and_import_module,
+    "Installing matplotlib...": install_and_import_module,
+    "Installing trimesh...": install_and_import_module,
+    "Installing pyrender...": install_and_import_module,
     "Completing installation..": complete_installation
 }
-
-
-
 # ---------------------------------------------------------------------------- #
 #                                    Panels                                    #
 # ---------------------------------------------------------------------------- #
@@ -281,55 +302,20 @@ class EXAMPLE_OT_install_dependencies(bpy.types.Operator):
         # Deactivate when dependencies have been installed
         return not dependencies_installed
 
-    # def execute(self, context):
-
-    #     try:
-    #         # change ui and refresh
-    #         context.scene.installing = True 
-    #         refresh_all_areas()
-    #         context.area.tag_redraw()
-    #         time.sleep(1)
-    #         context.area.tag_redraw()
-    #         # start install ->
-    #         install_pip()
-    #         for dependency in dependencies:
-    #             install_and_import_module(module_name=dependency.module,
-    #                                       package_name=dependency.package,
-    #                                       global_name=dependency.name,
-    #                                       importable=dependency.importable)
-    #         complete_installation()
-    #         # <- end install
-    #         # change ui and refresh
-    #         context.scene.installing = False
-    #         refresh_all_areas()
-
-    #     except (subprocess.CalledProcessError, ImportError) as err:
-    #         self.report({"ERROR"}, str(err))
-    #         return {"CANCELLED"}
-
-    #     global dependencies_installed
-    #     dependencies_installed = True
-
-    #     # Import and register the panels and operators since dependencies are installed
-    #     custom_un_register(True)
-
-    #     return {"FINISHED"}
 
     def modal(self, context, event):
         
 
         global Operations
         global dependency_label
+        global dependencies_installed
         #update progress bar
         if not self.done:
             print(f"Updating: {self.step+1}/{self.max_step}")
             #update progess bar
             context.object.progress = ((self.step+1)/(self.max_step))*100
             #update label
-            if self.step == 1:
-                progress_label = list(Operations.keys())[self.step] + ": " + dependency_label
-            else:
-                progress_label = list(Operations.keys())[self.step]
+            progress_label = list(Operations.keys())[self.step]
             context.object.progress_label = progress_label
 
             #send update signal
@@ -348,23 +334,24 @@ class EXAMPLE_OT_install_dependencies(bpy.types.Operator):
                 if self.done:
 
                     print("Finished")
+
                     self.step = 0
                     context.object.progress = 0
                     context.window_manager.event_timer_remove(self.timer)
                     context.area.tag_redraw()
-
+                    dependencies_installed = True
+                    custom_un_register(True)
                     return {'FINISHED'}
             
                 # RUNNING INSTALL OPERATIONS
                 if self.step < self.max_step:
-                    
+                    print(self.step)
                     try:
-                        if(self.step == 1):
-                            for dependency in dependencies:
-                                list(Operations.values())[self.step](module_name=dependency.module,
-                                                                     package_name=dependency.package,
-                                                                     global_name=dependency.name,
-                                                                     importable=dependency.importable)
+                        if(self.step >= 1 and (self.step-1 < len(dependencies))):
+                            list(Operations.values())[self.step](module_name=dependencies[self.step - 1].module,
+                                                                    package_name=dependencies[self.step - 1].package,
+                                                                    global_name=dependencies[self.step - 1].name,
+                                                                    importable=dependencies[self.step - 1].importable)
                         else:
                             list(Operations.values())[self.step]()
                             
@@ -462,13 +449,18 @@ preference_classes = (EXAMPLE_PT_warning_panel,
 #                             Register / Unregister                            #
 # ---------------------------------------------------------------------------- #
 def register():
+    
+    # custom_un_register(False)
     global dependencies_installed
     dependencies_installed = False
-    
+    print('Registering classes...')
     for cls in preference_classes:
+        print(f'Registering class: {cls}')
         bpy.utils.register_class(cls)
+    print('Initializing props...')
     for (prop_name, prop_value) in PROP_DEP:
         setattr(bpy.types.Scene, prop_name, prop_value)
+        print(f'{prop_name}: {prop_value}')
 
 
     bpy.types.Object.progress = bpy.props.FloatProperty(
@@ -482,9 +474,9 @@ def register():
 
         # Import and register the panels and operators since dependencies are installed
         custom_un_register(True)
-    except ModuleNotFoundError:
+    except Exception as e :
         # Don't register other panels, operators etc.
-        print("error, some packages are missing")
+        print(f"Exception occured: {e}")
     
 def unregister():  
     for cls in preference_classes:
