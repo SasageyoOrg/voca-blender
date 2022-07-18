@@ -120,6 +120,9 @@ def alter_sequence_shape(source_path, out_path, flame_model_fname, pc_idx=0, pc_
         print('No sequence meshes found')
         return
 
+    if not num_frames % 2 == 0:
+        num_frames = num_frames - 1
+
     # Load FLAME head model
     model = load_model(flame_model_fname)
     model_parms = np.zeros((num_frames, 300))
@@ -165,6 +168,9 @@ def alter_sequence_head_pose(source_path, out_path, flame_model_fname, pose_idx=
     if num_frames == 0:
         print('No sequence meshes found')
         return
+
+    if not num_frames % 2 == 0:
+        num_frames = num_frames - 1
 
     # Load FLAME head model
     model = load_model(flame_model_fname)
