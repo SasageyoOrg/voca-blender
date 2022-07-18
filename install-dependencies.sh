@@ -51,8 +51,8 @@ else
     exit 1
 fi
 
-BLENDER_SCRIPTS_DIR="/Applications/Blender.app/Contents/Resources/2.92/scripts"
-BLENDER_MODULE_DIR="/Applications/Blender.app/Contents/Resources/2.92/scripts/modules"
+BLENDER_SCRIPTS_DIR="path_to_blender/2.92/scripts"
+BLENDER_MODULE_DIR="path_to_blender/2.92/scripts/modules"
 
 # create the 'modules' directory in blender if not already there
 mkdir -p "$BLENDER_SCRIPTS_DIR"/modules
@@ -62,7 +62,7 @@ pip install -t $BLENDER_MODULE_DIR -U pip
 echo "\n${bold}> installing pip modules...${normal}"
 pip install -t $BLENDER_MODULE_DIR wget numpy scipy chumpy opencv-python resampy python-speech-features tensorflow==1.15.2 scikit-learn image ipython matplotlib trimesh pyrender
 pip install -t $BLENDER_MODULE_DIR  --upgrade protobuf==3.20.0
-pip install -t $BLENDER_MODULE_DIR https://github.com/MPI-IS/mesh/releases/download/v0.4/psbody_mesh-0.4-cp37-cp37m-macosx_10_9_x86_64.whl
+pip install -t $BLENDER_MODULE_DIR https://github.com/MPI-IS/mesh/releases/download/v0.4/psbody_mesh-0.4-cp37-cp37m-linux_x86_64.whl
 echo "  ${bold}ok${normal}"
 
 # reset the python system version
